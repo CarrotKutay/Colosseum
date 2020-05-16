@@ -1076,7 +1076,6 @@ GameObject:
   m_Component:
   - component: {fileID: 4809361241114295254}
   - component: {fileID: 5090545283163087464}
-  - component: {fileID: 7553035475491479645}
   m_Layer: 0
   m_Name: Nightshade
   m_TagString: Untagged
@@ -1092,7 +1091,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 4922716691995766137}
   m_LocalRotation: {x: 0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: -0, y: 1.128, z: 0}
+  m_LocalPosition: {x: -0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 7556792202085578405}
@@ -1113,6 +1112,7 @@ SkinnedMeshRenderer:
   m_LightProbeUsage: 1
   m_ReflectionProbeUsage: 1
   m_RayTracingMode: 0
+  m_RayTraceProcedural: 0
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
@@ -1214,19 +1214,6 @@ SkinnedMeshRenderer:
     m_Center: {x: 0.0016674399, y: -0.09119135, z: -0.017651126}
     m_Extent: {x: 0.9629254, y: 1.174474, z: 0.23829456}
   m_DirtyAABB: 0
---- !u!114 &7553035475491479645
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 4922716691995766137}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: ea7d7495833204790ba1d3a8755397f8, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  ConversionMode: 0
 --- !u!1 &5179383272590180340
 GameObject:
   m_ObjectHideFlags: 0
@@ -1756,8 +1743,11 @@ GameObject:
   - component: {fileID: 7126336406458474643}
   - component: {fileID: 5290696723450699293}
   - component: {fileID: 4858127844000563339}
+  - component: {fileID: 1863637935490438745}
+  - component: {fileID: 5858864274983315871}
+  - component: {fileID: 1359272439784303253}
   m_Layer: 0
-  m_Name: nightshade_unit
+  m_Name: nightshade_toEntity
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -1901,6 +1891,43 @@ MonoBehaviour:
     Tag05: 0
     Tag06: 0
     Tag07: 0
+--- !u!114 &1863637935490438745
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7035449241111587643}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ea7d7495833204790ba1d3a8755397f8, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  ConversionMode: 0
+--- !u!114 &5858864274983315871
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7035449241111587643}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ff62a77cb482d3f469df3bd1f88545b8, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+--- !u!114 &1359272439784303253
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7035449241111587643}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: cfb24b7d1c52f1a48b53d88b2ad6df17, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1 &7075096075945391269
 GameObject:
   m_ObjectHideFlags: 0
