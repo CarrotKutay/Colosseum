@@ -287,7 +287,7 @@ public class @PlayerAction : IInputActionCollection, IDisposable
                     ""name"": ""WASD"",
                     ""id"": ""265df3b4-724f-488c-b584-8d2e453ca60b"",
                     ""path"": ""Dpad"",
-                    ""interactions"": ""Press"",
+                    ""interactions"": ""Press(behavior=1)"",
                     ""processors"": """",
                     ""groups"": """",
                     ""action"": ""Move - Release"",
