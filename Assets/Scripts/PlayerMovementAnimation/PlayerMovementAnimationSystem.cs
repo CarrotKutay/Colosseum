@@ -1,8 +1,9 @@
 ﻿using Unity.Entities;
 using UnityEngine;
 
-public class PlayerMovementSystem : MonoBehaviour
+public class PlayerMovementAnimationSystem : MonoBehaviour
 {
+    #region Local Variables
     [SerializeField] private float MovementSpeed;
     [SerializeField] [Range(0, 1)] private float MovementAnimationChangeFactor;
     private EntityManager manager;
@@ -10,11 +11,15 @@ public class PlayerMovementSystem : MonoBehaviour
     private PlayerAction playerAction;
     private Animator playerAnimator;
     private Vector2 AnimationMoveVector;
+    [SerializeField] private bool DebugOn = false;
+    private TestPlayerMovementAnimation debugMovementAnimation;
 
+    #endregion
+
+    #region Start functionality
     private void Awake()
     {
         playerAction = new PlayerAction();
-        playerAnimator = GetComponentInChildren<Animator>();
         manager = World
             .DefaultGameObjectInjectionWorld
             .EntityManager;
@@ -22,26 +27,22 @@ public class PlayerMovementSystem : MonoBehaviour
 
     private void Start()
     {
+        playerAnimator = GetComponentInChildren<Animator>();
+        debugMovementAnimation = new TestPlayerMovementAnimation(playerAction);
+
         /* playerEntity = World
             .DefaultGameObjectInjectionWorld
             .GetOrCreateSystem<EndInitializationEntityCommandBufferSystem>()
             .GetSingletonEntity<PlayerTag>();
         */
 
-        /* playerAction.Player.Move.performed += context => readMoveInput(context.ReadValue<Vector2>());
-        playerAction.Player.Move.canceled += context => readMoveInput(context.ReadValue<Vector2>()); */
+        playerAction.Player.MovePress.performed += context => readMoveInput(context.ReadValue<Vector2>());
+        playerAction.Player.MoveRelease.canceled += context => readMoveInput(context.ReadValue<Vector2>());
     }
 
-    private void Update()
-    {
+    #endregion
 
-        readMoveInput();
-
-        animateMovement();
-
-        Debug.Log("Move event triggered: " + playerAction.Player.Move.triggered);
-    }
-
+    #region Activation Behaviour
     private void OnEnable()
     {
         playerAction.Enable();
@@ -52,10 +53,19 @@ public class PlayerMovementSystem : MonoBehaviour
         playerAction.Disable();
     }
 
-    private void readMoveInput()
+    #endregion
+    private void Update()
     {
-        var direction = playerAction.Player.Move.ReadValue<Vector2>();
+        if (DebugOn)
+        {
+            // testing access points
+            debugMovementAnimation.testActionAccessPoints();
+        }
+        animateMovement();
+    }
 
+    private void readMoveInput(Vector2 direction)
+    {
         var currentX = playerAnimator.GetFloat("PosX");
         var currentY = playerAnimator.GetFloat("PosY");
 
