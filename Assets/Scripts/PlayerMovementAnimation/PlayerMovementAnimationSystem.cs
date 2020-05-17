@@ -36,8 +36,15 @@ public class PlayerMovementAnimationSystem : MonoBehaviour
             .GetSingletonEntity<PlayerTag>();
         */
 
-        playerAction.Player.MovePress.performed += context => readMoveInput(context.ReadValue<Vector2>());
-        playerAction.Player.MoveRelease.canceled += context => readMoveInput(context.ReadValue<Vector2>());
+        activatingMovementEvents();
+    }
+
+    private void activatingMovementEvents()
+    {
+        playerAction.Player.MoveDownPressAsButton.performed +=
+            _ => readMoveInput(playerAction.Player.MoveCompositeAsValue.ReadValue<Vector2>());
+        playerAction.Player.MoveDownReleaseAsButton.performed +=
+            _ => readMoveInput(playerAction.Player.MoveCompositeAsValue.ReadValue<Vector2>());
     }
 
     #endregion

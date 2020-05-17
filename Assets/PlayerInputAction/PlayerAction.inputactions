@@ -6,20 +6,12 @@
             "id": "03c04e6b-5de1-4182-a04f-c95b068a085e",
             "actions": [
                 {
-                    "name": "Move - Press",
+                    "name": "Move - CompositeAsValue",
                     "type": "Value",
                     "id": "2e2253b7-49f1-4051-b3a0-d927daa74731",
                     "expectedControlType": "Vector2",
                     "processors": "",
                     "interactions": "Press"
-                },
-                {
-                    "name": "Move - Release",
-                    "type": "Value",
-                    "id": "854998a9-43c7-4062-934a-0346c9afc04e",
-                    "expectedControlType": "Vector2",
-                    "processors": "",
-                    "interactions": "Press(behavior=1)"
                 },
                 {
                     "name": "Look",
@@ -36,6 +28,70 @@
                     "expectedControlType": "Button",
                     "processors": "",
                     "interactions": ""
+                },
+                {
+                    "name": "MoveUp - PressAsButton",
+                    "type": "Button",
+                    "id": "e6de4e3d-4c5a-489c-a410-48193073d82c",
+                    "expectedControlType": "Button",
+                    "processors": "",
+                    "interactions": "Press"
+                },
+                {
+                    "name": "MoveUp - ReleaseAsButton",
+                    "type": "Button",
+                    "id": "765c7926-e563-4ffe-a06c-11948a0e9b31",
+                    "expectedControlType": "Button",
+                    "processors": "",
+                    "interactions": "Press(behavior=1)"
+                },
+                {
+                    "name": "MoveDown - PressAsButton",
+                    "type": "Button",
+                    "id": "85ea2119-8caf-4e72-b523-6511e835e590",
+                    "expectedControlType": "Button",
+                    "processors": "",
+                    "interactions": "Press"
+                },
+                {
+                    "name": "MoveDown - ReleaseAsButton",
+                    "type": "Button",
+                    "id": "0f0be77f-1430-4aaa-9632-aa26c66f962d",
+                    "expectedControlType": "Button",
+                    "processors": "",
+                    "interactions": "Press(behavior=1)"
+                },
+                {
+                    "name": "MoveLeft - PressAsButton",
+                    "type": "Button",
+                    "id": "fe29d2dd-6d8a-48a4-a461-6c2374792442",
+                    "expectedControlType": "Button",
+                    "processors": "",
+                    "interactions": "Press"
+                },
+                {
+                    "name": "MoveLeft - ReleaseAsButton",
+                    "type": "Button",
+                    "id": "7a7a3440-ec86-4ab4-bd64-f88b89dc0fa0",
+                    "expectedControlType": "Button",
+                    "processors": "",
+                    "interactions": "Press(behavior=1)"
+                },
+                {
+                    "name": "MoveRight - PressAsButton",
+                    "type": "Button",
+                    "id": "2fc49c64-c2ba-4de7-ae22-b9b019c0e5a4",
+                    "expectedControlType": "Button",
+                    "processors": "",
+                    "interactions": "Press"
+                },
+                {
+                    "name": "MoveRight - ReleaseAsButton",
+                    "type": "Button",
+                    "id": "50b299a7-56cb-44c7-a8d5-071a7c3b555a",
+                    "expectedControlType": "Button",
+                    "processors": "",
+                    "interactions": "Press(behavior=1)"
                 }
             ],
             "bindings": [
@@ -46,7 +102,7 @@
                     "interactions": "",
                     "processors": "",
                     "groups": ";Gamepad",
-                    "action": "Move - Press",
+                    "action": "Move - CompositeAsValue",
                     "isComposite": false,
                     "isPartOfComposite": false
                 },
@@ -57,7 +113,7 @@
                     "interactions": "Press",
                     "processors": "",
                     "groups": "",
-                    "action": "Move - Press",
+                    "action": "Move - CompositeAsValue",
                     "isComposite": true,
                     "isPartOfComposite": false
                 },
@@ -68,7 +124,7 @@
                     "interactions": "",
                     "processors": "",
                     "groups": ";Keyboard&Mouse",
-                    "action": "Move - Press",
+                    "action": "Move - CompositeAsValue",
                     "isComposite": false,
                     "isPartOfComposite": true
                 },
@@ -79,7 +135,7 @@
                     "interactions": "",
                     "processors": "",
                     "groups": ";Keyboard&Mouse",
-                    "action": "Move - Press",
+                    "action": "Move - CompositeAsValue",
                     "isComposite": false,
                     "isPartOfComposite": true
                 },
@@ -90,7 +146,7 @@
                     "interactions": "",
                     "processors": "",
                     "groups": ";Keyboard&Mouse",
-                    "action": "Move - Press",
+                    "action": "Move - CompositeAsValue",
                     "isComposite": false,
                     "isPartOfComposite": true
                 },
@@ -101,7 +157,7 @@
                     "interactions": "",
                     "processors": "",
                     "groups": ";Keyboard&Mouse",
-                    "action": "Move - Press",
+                    "action": "Move - CompositeAsValue",
                     "isComposite": false,
                     "isPartOfComposite": true
                 },
@@ -112,7 +168,7 @@
                     "interactions": "",
                     "processors": "",
                     "groups": ";Keyboard&Mouse",
-                    "action": "Move - Press",
+                    "action": "Move - CompositeAsValue",
                     "isComposite": false,
                     "isPartOfComposite": true
                 },
@@ -123,7 +179,7 @@
                     "interactions": "",
                     "processors": "",
                     "groups": ";Keyboard&Mouse",
-                    "action": "Move - Press",
+                    "action": "Move - CompositeAsValue",
                     "isComposite": false,
                     "isPartOfComposite": true
                 },
@@ -134,7 +190,7 @@
                     "interactions": "",
                     "processors": "",
                     "groups": ";Keyboard&Mouse",
-                    "action": "Move - Press",
+                    "action": "Move - CompositeAsValue",
                     "isComposite": false,
                     "isPartOfComposite": true
                 },
@@ -145,7 +201,7 @@
                     "interactions": "",
                     "processors": "",
                     "groups": ";Keyboard&Mouse",
-                    "action": "Move - Press",
+                    "action": "Move - CompositeAsValue",
                     "isComposite": false,
                     "isPartOfComposite": true
                 },
@@ -156,7 +212,7 @@
                     "interactions": "",
                     "processors": "",
                     "groups": "XR",
-                    "action": "Move - Press",
+                    "action": "Move - CompositeAsValue",
                     "isComposite": false,
                     "isPartOfComposite": false
                 },
@@ -167,7 +223,7 @@
                     "interactions": "",
                     "processors": "",
                     "groups": "Joystick",
-                    "action": "Move - Press",
+                    "action": "Move - CompositeAsValue",
                     "isComposite": false,
                     "isPartOfComposite": false
                 },
@@ -261,133 +317,89 @@
                 },
                 {
                     "name": "",
-                    "id": "22d96a7b-fb71-4ad3-b06e-c3c30b5354af",
-                    "path": "<Gamepad>/leftStick",
+                    "id": "57317a1b-b992-41d6-bcfe-bde41a92debe",
+                    "path": "Keyboard/W",
                     "interactions": "",
                     "processors": "",
-                    "groups": ";Gamepad",
-                    "action": "Move - Release",
+                    "groups": "Keyboard&Mouse",
+                    "action": "MoveUp - PressAsButton",
                     "isComposite": false,
                     "isPartOfComposite": false
                 },
                 {
-                    "name": "WASD",
-                    "id": "265df3b4-724f-488c-b584-8d2e453ca60b",
-                    "path": "Dpad",
-                    "interactions": "Press(behavior=1)",
+                    "name": "",
+                    "id": "48d537ef-3baf-4a83-95d7-5d09593d5cc8",
+                    "path": "keyboard/S",
+                    "interactions": "",
                     "processors": "",
                     "groups": "",
-                    "action": "Move - Release",
-                    "isComposite": true,
-                    "isPartOfComposite": false
-                },
-                {
-                    "name": "up",
-                    "id": "937004f2-6120-4632-bb5d-9f61ef0446e0",
-                    "path": "<Keyboard>/w",
-                    "interactions": "",
-                    "processors": "",
-                    "groups": ";Keyboard&Mouse",
-                    "action": "Move - Release",
-                    "isComposite": false,
-                    "isPartOfComposite": true
-                },
-                {
-                    "name": "up",
-                    "id": "70bbe9d4-7370-44e5-931c-a010496304bc",
-                    "path": "<Keyboard>/upArrow",
-                    "interactions": "",
-                    "processors": "",
-                    "groups": ";Keyboard&Mouse",
-                    "action": "Move - Release",
-                    "isComposite": false,
-                    "isPartOfComposite": true
-                },
-                {
-                    "name": "down",
-                    "id": "6c1b6eec-213e-4ade-b6c6-600aec78a72d",
-                    "path": "<Keyboard>/s",
-                    "interactions": "",
-                    "processors": "",
-                    "groups": ";Keyboard&Mouse",
-                    "action": "Move - Release",
-                    "isComposite": false,
-                    "isPartOfComposite": true
-                },
-                {
-                    "name": "down",
-                    "id": "a06aec47-6c7f-472b-a611-2fa97075e20b",
-                    "path": "<Keyboard>/downArrow",
-                    "interactions": "",
-                    "processors": "",
-                    "groups": ";Keyboard&Mouse",
-                    "action": "Move - Release",
-                    "isComposite": false,
-                    "isPartOfComposite": true
-                },
-                {
-                    "name": "left",
-                    "id": "bb2064fd-65dd-42aa-8d99-f465d7fb7656",
-                    "path": "<Keyboard>/a",
-                    "interactions": "",
-                    "processors": "",
-                    "groups": ";Keyboard&Mouse",
-                    "action": "Move - Release",
-                    "isComposite": false,
-                    "isPartOfComposite": true
-                },
-                {
-                    "name": "left",
-                    "id": "9338d1d6-9ff1-4f0d-91f3-cba8d51e37c5",
-                    "path": "<Keyboard>/leftArrow",
-                    "interactions": "",
-                    "processors": "",
-                    "groups": ";Keyboard&Mouse",
-                    "action": "Move - Release",
-                    "isComposite": false,
-                    "isPartOfComposite": true
-                },
-                {
-                    "name": "right",
-                    "id": "7c1f9e0f-9f66-4148-a044-78acbf2d0449",
-                    "path": "<Keyboard>/d",
-                    "interactions": "",
-                    "processors": "",
-                    "groups": ";Keyboard&Mouse",
-                    "action": "Move - Release",
-                    "isComposite": false,
-                    "isPartOfComposite": true
-                },
-                {
-                    "name": "right",
-                    "id": "8ec7c429-2395-4d51-a785-e705827a9ebd",
-                    "path": "<Keyboard>/rightArrow",
-                    "interactions": "",
-                    "processors": "",
-                    "groups": ";Keyboard&Mouse",
-                    "action": "Move - Release",
-                    "isComposite": false,
-                    "isPartOfComposite": true
-                },
-                {
-                    "name": "",
-                    "id": "b48b3960-e5cb-4a6f-9a7d-91f66b5eff81",
-                    "path": "<XRController>/{Primary2DAxis}",
-                    "interactions": "",
-                    "processors": "",
-                    "groups": "XR",
-                    "action": "Move - Release",
+                    "action": "MoveDown - PressAsButton",
                     "isComposite": false,
                     "isPartOfComposite": false
                 },
                 {
                     "name": "",
-                    "id": "26b25fa2-e16f-48d9-a032-8de5a91457d4",
-                    "path": "<Joystick>/stick",
+                    "id": "17863065-8416-4d86-a2ff-a2006e0385ab",
+                    "path": "keyboard/A",
                     "interactions": "",
                     "processors": "",
-                    "groups": "Joystick",
-                    "action": "Move - Release",
+                    "groups": "",
+                    "action": "MoveLeft - PressAsButton",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "e6656a63-91f8-4f2a-9b1b-0a5a11dac531",
+                    "path": "keyboard/D",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "MoveRight - PressAsButton",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "0771f2d7-dcd0-439e-adf6-61d335792f5c",
+                    "path": "Keyboard/W",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "Keyboard&Mouse",
+                    "action": "MoveUp - ReleaseAsButton",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "95cc1361-a0e7-437a-98bf-3948c8d5c571",
+                    "path": "keyboard/S",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "MoveDown - ReleaseAsButton",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "717e477e-a2be-4414-9efc-c6957846b260",
+                    "path": "keyboard/A",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "MoveLeft - ReleaseAsButton",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "afc18e83-0eea-4872-a9c3-8583346a4037",
+                    "path": "keyboard/D",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "MoveRight - ReleaseAsButton",
                     "isComposite": false,
                     "isPartOfComposite": false
                 }
