@@ -41,10 +41,15 @@ public class PlayerMovementAnimationSystem : MonoBehaviour
         */
 
         activatingMovementEvents();
+        activateDodgeEvents();
     }
-
+    private void activateDodgeEvents()
+    {
+        playerAction.Player.DodgeForwardPressAsButton.performed += _ => readDodgeAnimation();
+    }
     private void activatingMovementEvents()
     {
+        // basic movement
         playerAction.Player.MoveDownPressAsButton.performed +=
             _ => readMovementInput(playerAction.Player.MoveCompositeAsValue.ReadValue<Vector2>());
         playerAction.Player.MoveDownReleaseAsButton.performed +=
@@ -61,6 +66,7 @@ public class PlayerMovementAnimationSystem : MonoBehaviour
             _ => readMovementInput(playerAction.Player.MoveCompositeAsValue.ReadValue<Vector2>());
         playerAction.Player.MoveLeftReleaseAsButton.performed +=
             _ => readMovementInput(playerAction.Player.MoveCompositeAsValue.ReadValue<Vector2>());
+
     }
 
     #endregion
@@ -82,7 +88,7 @@ public class PlayerMovementAnimationSystem : MonoBehaviour
         if (DebugOn)
         {
             // testing access points
-            debugMovementAnimation.testDirectionSpeedInput();
+            debugMovementAnimation.testDodgeTriggered();
         }
         animateMovement();
     }
@@ -141,6 +147,11 @@ public class PlayerMovementAnimationSystem : MonoBehaviour
         AnimationMoveVector = direction;
     }
 
+    private void readDodgeAnimation()
+    {
+        playerAnimator.SetTrigger("TriggerDodge");
+    }
+
     private void animateMovement()
     {
         var transformationVector = transitionIntoAnimationValue();
@@ -150,6 +161,12 @@ public class PlayerMovementAnimationSystem : MonoBehaviour
 
     #region onDestroy
     private void OnDestroy()
+    {
+        deactivateMovementEvents();
+        deactivateDodgeEvents();
+    }
+
+    private void deactivateMovementEvents()
     {
         playerAction.Player.MoveDownPressAsButton.performed -=
             _ => readMovementInput(playerAction.Player.MoveCompositeAsValue.ReadValue<Vector2>());
@@ -168,5 +185,11 @@ public class PlayerMovementAnimationSystem : MonoBehaviour
         playerAction.Player.MoveLeftReleaseAsButton.performed -=
             _ => readMovementInput(playerAction.Player.MoveCompositeAsValue.ReadValue<Vector2>());
     }
+
+    private void deactivateDodgeEvents()
+    {
+        playerAction.Player.DodgeForwardPressAsButton.performed -= _ => readDodgeAnimation();
+    }
+
     #endregion
 }

@@ -985,7 +985,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   MovementSpeed: 10
   MovementAnimationChangeFactor: 0.2
-  DebugOn: 0
+  DebugOn: 1
 --- !u!4 &1432362462405000952
 Transform:
   m_ObjectHideFlags: 0

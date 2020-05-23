@@ -92,6 +92,14 @@
                     "expectedControlType": "Button",
                     "processors": "",
                     "interactions": "Press(behavior=1)"
+                },
+                {
+                    "name": "DodgeForward - PressAsButton",
+                    "type": "Button",
+                    "id": "b37bed52-4da0-43c6-b763-e4fb4da87904",
+                    "expectedControlType": "Button",
+                    "processors": "",
+                    "interactions": "MultiTap"
                 }
             ],
             "bindings": [
@@ -332,7 +340,7 @@
                     "path": "keyboard/S",
                     "interactions": "",
                     "processors": "",
-                    "groups": "",
+                    "groups": "Keyboard&Mouse",
                     "action": "MoveDown - PressAsButton",
                     "isComposite": false,
                     "isPartOfComposite": false
@@ -343,7 +351,7 @@
                     "path": "keyboard/A",
                     "interactions": "",
                     "processors": "",
-                    "groups": "",
+                    "groups": "Keyboard&Mouse",
                     "action": "MoveLeft - PressAsButton",
                     "isComposite": false,
                     "isPartOfComposite": false
@@ -354,7 +362,7 @@
                     "path": "keyboard/D",
                     "interactions": "",
                     "processors": "",
-                    "groups": "",
+                    "groups": "Keyboard&Mouse",
                     "action": "MoveRight - PressAsButton",
                     "isComposite": false,
                     "isPartOfComposite": false
@@ -376,7 +384,7 @@
                     "path": "keyboard/S",
                     "interactions": "",
                     "processors": "",
-                    "groups": "",
+                    "groups": "Keyboard&Mouse",
                     "action": "MoveDown - ReleaseAsButton",
                     "isComposite": false,
                     "isPartOfComposite": false
@@ -387,7 +395,7 @@
                     "path": "keyboard/A",
                     "interactions": "",
                     "processors": "",
-                    "groups": "",
+                    "groups": "Keyboard&Mouse",
                     "action": "MoveLeft - ReleaseAsButton",
                     "isComposite": false,
                     "isPartOfComposite": false
@@ -398,8 +406,19 @@
                     "path": "keyboard/D",
                     "interactions": "",
                     "processors": "",
-                    "groups": "",
+                    "groups": "Keyboard&Mouse",
                     "action": "MoveRight - ReleaseAsButton",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "cc108ccb-f42c-44ed-8d75-0f2f8becf846",
+                    "path": "keyboard/W",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "Keyboard&Mouse",
+                    "action": "DodgeForward - PressAsButton",
                     "isComposite": false,
                     "isPartOfComposite": false
                 }

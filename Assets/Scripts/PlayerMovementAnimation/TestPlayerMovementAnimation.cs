@@ -15,6 +15,11 @@ public class TestPlayerMovementAnimation
         Debug.Log("Move Released event triggered: " + movementReleasedEventTriggered());
     }
 
+    public void testDodgeTriggered()
+    {
+        Debug.Log("Dodge input triggered: " + playerAction.Player.DodgeForwardPressAsButton.triggered);
+    }
+
     public void testDirectionSpeedInput()
     {
         Debug.Log("Speed at x: " + playerAction.Player.MoveCompositeAsValue.ReadValue<Vector2>().x);

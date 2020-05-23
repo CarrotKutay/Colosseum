@@ -105,6 +105,14 @@ public class @PlayerAction : IInputActionCollection, IDisposable
                     ""expectedControlType"": ""Button"",
                     ""processors"": """",
                     ""interactions"": ""Press(behavior=1)""
+                },
+                {
+                    ""name"": ""DodgeForward - PressAsButton"",
+                    ""type"": ""Button"",
+                    ""id"": ""b37bed52-4da0-43c6-b763-e4fb4da87904"",
+                    ""expectedControlType"": ""Button"",
+                    ""processors"": """",
+                    ""interactions"": ""MultiTap""
                 }
             ],
             ""bindings"": [
@@ -345,7 +353,7 @@ public class @PlayerAction : IInputActionCollection, IDisposable
                     ""path"": ""keyboard/S"",
                     ""interactions"": """",
                     ""processors"": """",
-                    ""groups"": """",
+                    ""groups"": ""Keyboard&Mouse"",
                     ""action"": ""MoveDown - PressAsButton"",
                     ""isComposite"": false,
                     ""isPartOfComposite"": false
@@ -356,7 +364,7 @@ public class @PlayerAction : IInputActionCollection, IDisposable
                     ""path"": ""keyboard/A"",
                     ""interactions"": """",
                     ""processors"": """",
-                    ""groups"": """",
+                    ""groups"": ""Keyboard&Mouse"",
                     ""action"": ""MoveLeft - PressAsButton"",
                     ""isComposite"": false,
                     ""isPartOfComposite"": false
@@ -367,7 +375,7 @@ public class @PlayerAction : IInputActionCollection, IDisposable
                     ""path"": ""keyboard/D"",
                     ""interactions"": """",
                     ""processors"": """",
-                    ""groups"": """",
+                    ""groups"": ""Keyboard&Mouse"",
                     ""action"": ""MoveRight - PressAsButton"",
                     ""isComposite"": false,
                     ""isPartOfComposite"": false
@@ -389,7 +397,7 @@ public class @PlayerAction : IInputActionCollection, IDisposable
                     ""path"": ""keyboard/S"",
                     ""interactions"": """",
                     ""processors"": """",
-                    ""groups"": """",
+                    ""groups"": ""Keyboard&Mouse"",
                     ""action"": ""MoveDown - ReleaseAsButton"",
                     ""isComposite"": false,
                     ""isPartOfComposite"": false
@@ -400,7 +408,7 @@ public class @PlayerAction : IInputActionCollection, IDisposable
                     ""path"": ""keyboard/A"",
                     ""interactions"": """",
                     ""processors"": """",
-                    ""groups"": """",
+                    ""groups"": ""Keyboard&Mouse"",
                     ""action"": ""MoveLeft - ReleaseAsButton"",
                     ""isComposite"": false,
                     ""isPartOfComposite"": false
@@ -411,8 +419,19 @@ public class @PlayerAction : IInputActionCollection, IDisposable
                     ""path"": ""keyboard/D"",
                     ""interactions"": """",
                     ""processors"": """",
-                    ""groups"": """",
+                    ""groups"": ""Keyboard&Mouse"",
                     ""action"": ""MoveRight - ReleaseAsButton"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""cc108ccb-f42c-44ed-8d75-0f2f8becf846"",
+                    ""path"": ""keyboard/W"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": ""Keyboard&Mouse"",
+                    ""action"": ""DodgeForward - PressAsButton"",
                     ""isComposite"": false,
                     ""isPartOfComposite"": false
                 }
@@ -1001,6 +1020,7 @@ public class @PlayerAction : IInputActionCollection, IDisposable
         m_Player_MoveLeftReleaseAsButton = m_Player.FindAction("MoveLeft - ReleaseAsButton", throwIfNotFound: true);
         m_Player_MoveRightPressAsButton = m_Player.FindAction("MoveRight - PressAsButton", throwIfNotFound: true);
         m_Player_MoveRightReleaseAsButton = m_Player.FindAction("MoveRight - ReleaseAsButton", throwIfNotFound: true);
+        m_Player_DodgeForwardPressAsButton = m_Player.FindAction("DodgeForward - PressAsButton", throwIfNotFound: true);
         // UI
         m_UI = asset.FindActionMap("UI", throwIfNotFound: true);
         m_UI_Navigate = m_UI.FindAction("Navigate", throwIfNotFound: true);
@@ -1073,6 +1093,7 @@ public class @PlayerAction : IInputActionCollection, IDisposable
     private readonly InputAction m_Player_MoveLeftReleaseAsButton;
     private readonly InputAction m_Player_MoveRightPressAsButton;
     private readonly InputAction m_Player_MoveRightReleaseAsButton;
+    private readonly InputAction m_Player_DodgeForwardPressAsButton;
     public struct PlayerActions
     {
         private @PlayerAction m_Wrapper;
@@ -1088,6 +1109,7 @@ public class @PlayerAction : IInputActionCollection, IDisposable
         public InputAction @MoveLeftReleaseAsButton => m_Wrapper.m_Player_MoveLeftReleaseAsButton;
         public InputAction @MoveRightPressAsButton => m_Wrapper.m_Player_MoveRightPressAsButton;
         public InputAction @MoveRightReleaseAsButton => m_Wrapper.m_Player_MoveRightReleaseAsButton;
+        public InputAction @DodgeForwardPressAsButton => m_Wrapper.m_Player_DodgeForwardPressAsButton;
         public InputActionMap Get() { return m_Wrapper.m_Player; }
         public void Enable() { Get().Enable(); }
         public void Disable() { Get().Disable(); }
@@ -1130,6 +1152,9 @@ public class @PlayerAction : IInputActionCollection, IDisposable
                 @MoveRightReleaseAsButton.started -= m_Wrapper.m_PlayerActionsCallbackInterface.OnMoveRightReleaseAsButton;
                 @MoveRightReleaseAsButton.performed -= m_Wrapper.m_PlayerActionsCallbackInterface.OnMoveRightReleaseAsButton;
                 @MoveRightReleaseAsButton.canceled -= m_Wrapper.m_PlayerActionsCallbackInterface.OnMoveRightReleaseAsButton;
+                @DodgeForwardPressAsButton.started -= m_Wrapper.m_PlayerActionsCallbackInterface.OnDodgeForwardPressAsButton;
+                @DodgeForwardPressAsButton.performed -= m_Wrapper.m_PlayerActionsCallbackInterface.OnDodgeForwardPressAsButton;
+                @DodgeForwardPressAsButton.canceled -= m_Wrapper.m_PlayerActionsCallbackInterface.OnDodgeForwardPressAsButton;
             }
             m_Wrapper.m_PlayerActionsCallbackInterface = instance;
             if (instance != null)
@@ -1167,6 +1192,9 @@ public class @PlayerAction : IInputActionCollection, IDisposable
                 @MoveRightReleaseAsButton.started += instance.OnMoveRightReleaseAsButton;
                 @MoveRightReleaseAsButton.performed += instance.OnMoveRightReleaseAsButton;
                 @MoveRightReleaseAsButton.canceled += instance.OnMoveRightReleaseAsButton;
+                @DodgeForwardPressAsButton.started += instance.OnDodgeForwardPressAsButton;
+                @DodgeForwardPressAsButton.performed += instance.OnDodgeForwardPressAsButton;
+                @DodgeForwardPressAsButton.canceled += instance.OnDodgeForwardPressAsButton;
             }
         }
     }
@@ -1334,6 +1362,7 @@ public class @PlayerAction : IInputActionCollection, IDisposable
         void OnMoveLeftReleaseAsButton(InputAction.CallbackContext context);
         void OnMoveRightPressAsButton(InputAction.CallbackContext context);
         void OnMoveRightReleaseAsButton(InputAction.CallbackContext context);
+        void OnDodgeForwardPressAsButton(InputAction.CallbackContext context);
     }
     public interface IUIActions
     {
