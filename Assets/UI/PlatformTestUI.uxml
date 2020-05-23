@@ -1,0 +1,16 @@
+<ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements">
+    <ui:IMGUIContainer name="DebugContainer" style="opacity: 1; align-items: flex-end;">
+        <Style src="UIPlatformTest.uss" />
+        <ui:IMGUIContainer name="AnimationTransitionValues" style="align-items: auto; max-width: none; border-left-width: 1px; border-right-width: 1px; border-top-width: 1px; border-bottom-width: 1px; flex-direction: column; left: auto; top: auto; right: auto; bottom: auto; width: 25%; position: relative; background-color: rgba(197, 197, 197, 255); opacity: 0.6;">
+            <uie:Toolbar style="align-items: stretch; flex-wrap: wrap;">
+                <ui:Label text="Animation Transition Values" style="flex-wrap: nowrap; flex-shrink: 0; flex-grow: 0; align-items: auto; font-size: 6px; white-space: normal; -unity-text-align: upper-left;" />
+            </uie:Toolbar>
+            <ui:VisualElement style="width: 100%;">
+                <ui:TextField picking-mode="Ignore" label="Pos X:" value="filler text" text="filler text" name="PosX" view-data-key="posx" style="width: auto; font-size: 6px;" />
+            </ui:VisualElement>
+            <ui:VisualElement style="width: 100%;">
+                <ui:TextField picking-mode="Ignore" label="Pos Y:" value="filler text" text="filler text" name="PosY" view-data-key="posy" style="font-size: 6px;" />
+            </ui:VisualElement>
+        </ui:IMGUIContainer>
+    </ui:IMGUIContainer>
+</ui:UXML>

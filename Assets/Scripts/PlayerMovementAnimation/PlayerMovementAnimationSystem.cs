@@ -1,4 +1,5 @@
 ﻿using Unity.Entities;
+using Unity.Mathematics;
 using UnityEngine;
 
 public class PlayerMovementAnimationSystem : MonoBehaviour
@@ -11,6 +12,9 @@ public class PlayerMovementAnimationSystem : MonoBehaviour
     private PlayerAction playerAction;
     private Animator playerAnimator;
     private Vector2 AnimationMoveVector;
+    private Vector2 PreviousAnimationMoveVector;
+    private Vector2 Momentum;
+    private Vector2 TransitionVectorValue;
     [SerializeField] private bool DebugOn = false;
     private TestPlayerMovementAnimation debugMovementAnimation;
 
@@ -42,9 +46,21 @@ public class PlayerMovementAnimationSystem : MonoBehaviour
     private void activatingMovementEvents()
     {
         playerAction.Player.MoveDownPressAsButton.performed +=
-            _ => readMoveInput(playerAction.Player.MoveCompositeAsValue.ReadValue<Vector2>());
+            _ => readMovementInput(playerAction.Player.MoveCompositeAsValue.ReadValue<Vector2>());
         playerAction.Player.MoveDownReleaseAsButton.performed +=
-            _ => readMoveInput(playerAction.Player.MoveCompositeAsValue.ReadValue<Vector2>());
+            _ => readMovementInput(playerAction.Player.MoveCompositeAsValue.ReadValue<Vector2>());
+        playerAction.Player.MoveUpPressAsButton.performed +=
+            _ => readMovementInput(playerAction.Player.MoveCompositeAsValue.ReadValue<Vector2>());
+        playerAction.Player.MoveUpReleaseAsButton.performed +=
+            _ => readMovementInput(playerAction.Player.MoveCompositeAsValue.ReadValue<Vector2>());
+        playerAction.Player.MoveRightPressAsButton.performed +=
+            _ => readMovementInput(playerAction.Player.MoveCompositeAsValue.ReadValue<Vector2>());
+        playerAction.Player.MoveRightReleaseAsButton.performed +=
+            _ => readMovementInput(playerAction.Player.MoveCompositeAsValue.ReadValue<Vector2>());
+        playerAction.Player.MoveLeftPressAsButton.performed +=
+            _ => readMovementInput(playerAction.Player.MoveCompositeAsValue.ReadValue<Vector2>());
+        playerAction.Player.MoveLeftReleaseAsButton.performed +=
+            _ => readMovementInput(playerAction.Player.MoveCompositeAsValue.ReadValue<Vector2>());
     }
 
     #endregion
@@ -66,34 +82,91 @@ public class PlayerMovementAnimationSystem : MonoBehaviour
         if (DebugOn)
         {
             // testing access points
-            debugMovementAnimation.testActionAccessPoints();
+            debugMovementAnimation.testDirectionSpeedInput();
         }
         animateMovement();
     }
 
-    private void readMoveInput(Vector2 direction)
+    private Vector2 transitionIntoAnimationValue(float transitionSpeed = .002f)
     {
+        if (AnimationMoveVector == Vector2.zero) { return Vector2.zero; }
+
         var currentX = playerAnimator.GetFloat("PosX");
         var currentY = playerAnimator.GetFloat("PosY");
 
+        Vector2 directionTransformationValue = AnimationMoveVector;
+        //Debug.Log("accessing x animation movement -> " + TransitionVectorValue.x);
 
-        AnimationMoveVector = direction == Vector2.zero ?
-            new Vector2(currentX, currentY) * MovementAnimationChangeFactor :
-            direction * MovementAnimationChangeFactor + new Vector2(currentX, currentY);
+        if (AnimationMoveVector.x != currentX)
+        {
+            // get direction sign from animtion direction to move into
+            var transitionDirection = AnimationMoveVector.x < 0 ? -1 : 1;
+            // max negative move animation direction
+            var maxMoveDir = AnimationMoveVector.x < 0 ? AnimationMoveVector.x : AnimationMoveVector.x * -1f;
+            // functionality to control growth of input value transition
+            directionTransformationValue.x = math.clamp((math.abs(currentX) + transitionSpeed + Momentum.x) * transitionDirection, maxMoveDir, -maxMoveDir);
+        }
+        if (AnimationMoveVector.y != currentY)
+        {
+            // get direction sign from animtion direction to move into
+            var transitionDirection = AnimationMoveVector.y < 0 ? -1 : 1;
+            // max negative move animation direction
+            var maxMoveDir = AnimationMoveVector.y < 0 ? AnimationMoveVector.y : AnimationMoveVector.y * -1f;
+            // functionality to control growth of input value transition
+            directionTransformationValue.y = math.clamp((math.abs(currentY) + transitionSpeed + Momentum.y) * transitionDirection, maxMoveDir, -maxMoveDir);
+        }
 
-        AnimationMoveVector.x = Mathf.Clamp(AnimationMoveVector.x, -1f, 1f);
-        AnimationMoveVector.y = Mathf.Clamp(AnimationMoveVector.y, -1f, 1f);
+        return directionTransformationValue;
+    }
+
+    private void compareToPreviousAnimation()
+    {
+        if (AnimationMoveVector.x == PreviousAnimationMoveVector.x) { Momentum.x += Time.deltaTime; Momentum.x *= 2; }
+        else { Momentum.x = 0; }
+
+        if (AnimationMoveVector.y == PreviousAnimationMoveVector.y) { Momentum.y += Time.deltaTime; Momentum.y *= 2; }
+        else { Momentum.y = 0; }
+    }
+
+    /// <summary>
+    /// <para> Keep Movement input received up to date inside local variable AnimationMoveVector </para>
+    /// </summary>
+    private void readMovementInput(Vector2 direction)
+    {
+        // before changing the movement animation vector,
+        // we compare it to the previous animation transition vector.
+        // If it is the same animation vector we gain momentum while
+        // performing the animation  
+        compareToPreviousAnimation();
+        AnimationMoveVector = direction;
     }
 
     private void animateMovement()
     {
-        playerAnimator.SetFloat("PosX", AnimationMoveVector.x);
-        playerAnimator.SetFloat("PosY", AnimationMoveVector.y);
+        var transformationVector = transitionIntoAnimationValue();
+        playerAnimator.SetFloat("PosX", transformationVector.x);
+        playerAnimator.SetFloat("PosY", transformationVector.y);
     }
 
-    /* private void OnDestroy()
+    #region onDestroy
+    private void OnDestroy()
     {
-        playerAction.Player.Move.performed -= context => readMoveInput(context.ReadValue<Vector2>());
-        playerAction.Player.Move.canceled -= context => readMoveInput(context.ReadValue<Vector2>());
-    } */
+        playerAction.Player.MoveDownPressAsButton.performed -=
+            _ => readMovementInput(playerAction.Player.MoveCompositeAsValue.ReadValue<Vector2>());
+        playerAction.Player.MoveDownReleaseAsButton.performed -=
+            _ => readMovementInput(playerAction.Player.MoveCompositeAsValue.ReadValue<Vector2>());
+        playerAction.Player.MoveUpPressAsButton.performed -=
+            _ => readMovementInput(playerAction.Player.MoveCompositeAsValue.ReadValue<Vector2>());
+        playerAction.Player.MoveUpReleaseAsButton.performed -=
+            _ => readMovementInput(playerAction.Player.MoveCompositeAsValue.ReadValue<Vector2>());
+        playerAction.Player.MoveRightPressAsButton.performed -=
+            _ => readMovementInput(playerAction.Player.MoveCompositeAsValue.ReadValue<Vector2>());
+        playerAction.Player.MoveRightReleaseAsButton.performed -=
+            _ => readMovementInput(playerAction.Player.MoveCompositeAsValue.ReadValue<Vector2>());
+        playerAction.Player.MoveLeftPressAsButton.performed -=
+            _ => readMovementInput(playerAction.Player.MoveCompositeAsValue.ReadValue<Vector2>());
+        playerAction.Player.MoveLeftReleaseAsButton.performed -=
+            _ => readMovementInput(playerAction.Player.MoveCompositeAsValue.ReadValue<Vector2>());
+    }
+    #endregion
 }

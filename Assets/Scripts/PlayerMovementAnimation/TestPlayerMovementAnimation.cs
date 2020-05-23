@@ -1,4 +1,5 @@
 ﻿using UnityEngine;
+using Unity.Mathematics;
 
 public class TestPlayerMovementAnimation
 {
@@ -12,6 +13,12 @@ public class TestPlayerMovementAnimation
     {
         Debug.Log("Move Pressed event triggered: " + movementPressEventTriggered());
         Debug.Log("Move Released event triggered: " + movementReleasedEventTriggered());
+    }
+
+    public void testDirectionSpeedInput()
+    {
+        Debug.Log("Speed at x: " + playerAction.Player.MoveCompositeAsValue.ReadValue<Vector2>().x);
+        Debug.Log("Speed at y: " + playerAction.Player.MoveCompositeAsValue.ReadValue<Vector2>().y);
     }
 
     private bool movementPressEventTriggered()
