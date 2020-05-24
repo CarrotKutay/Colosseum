@@ -506,8 +506,8 @@ Transform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1833764604}
-  m_LocalRotation: {x: 0.2554376, y: 0.007838487, z: -0.0021363941, w: 0.9667914}
-  m_LocalPosition: {x: -14.513772, y: 4.963255, z: -28.440243}
+  m_LocalRotation: {x: 0.20277521, y: 0.03290914, z: -0.0068683457, w: 0.97864807}
+  m_LocalPosition: {x: -13.91804, y: 3.4026833, z: -25.44905}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 0}
@@ -985,7 +985,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   MovementSpeed: 10
   MovementAnimationChangeFactor: 0.2
-  DebugOn: 1
+  DebugOn: 0
 --- !u!4 &1432362462405000952
 Transform:
   m_ObjectHideFlags: 0
