@@ -143,8 +143,10 @@ public class InputSystem : SystemBase
                     if (nextMoveOrder.Equals(oldOrder[0])
                         && !(nextMoveOrder.Equals(float2.zero)))
                     {
-                        InputHoldComponent.Value.x += DeltaTime;
-                        InputHoldComponent.Value.z += DeltaTime;
+                        var holdValue = DeltaTime * 2; // increased value to make startup velocity a bit faster 
+
+                        InputHoldComponent.Value.x += holdValue;
+                        InputHoldComponent.Value.z += holdValue;
                         InputHoldComponent.Value = math.clamp(InputHoldComponent.Value, -maxDurationValue, maxDurationValue);
                     }
                     else
