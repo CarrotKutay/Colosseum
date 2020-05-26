@@ -3,6 +3,7 @@ using Unity.Collections;
 using Unity.Physics;
 using UnityEngine;
 using Unity.Mathematics;
+using Unity.Jobs;
 
 public class InputSystem : SystemBase
 {
@@ -11,9 +12,14 @@ public class InputSystem : SystemBase
     private Entity PlayerPhysics;
     private int screenWidth, screenHeight;
     private float2 screenZero;
+    private EndSimulationEntityCommandBufferSystem endSimulationEntityCommandBufferSystem;
 
     protected override void OnCreate()
     {
+        endSimulationEntityCommandBufferSystem = World
+                .DefaultGameObjectInjectionWorld
+                .GetOrCreateSystem<EndSimulationEntityCommandBufferSystem>();
+
         screenWidth = Display.main.systemWidth;
         screenHeight = Display.main.systemHeight;
         screenZero = new float2(screenWidth / 2, screenHeight / 2);
@@ -137,32 +143,87 @@ public class InputSystem : SystemBase
     #endregion
 
     #region Reading input
+
+    #region read movement input
     private void readMovementInput(float2 MovementDirection)
     {
-        var movementInput = Manager.GetComponentData<MovementDirectionInputComponent>(PlayerPhysics);
-        movementInput.NewValue = MovementDirection;
-        Manager.SetComponentData<MovementDirectionInputComponent>(PlayerPhysics, movementInput);
+        var ecb_concurrent = endSimulationEntityCommandBufferSystem
+            .CreateCommandBuffer()
+            .ToConcurrent();
+        var ReadMovementComponent = GetComponentDataFromEntity<MovementDirectionInputComponent>();
+
+        var readMovementInputJob = new ReadMovementInputJob
+        {
+            EntityCommandBuffer = ecb_concurrent,
+            GetMovementInput = ReadMovementComponent,
+            newMovementInput = MovementDirection,
+            Player = PlayerPhysics,
+        };
+        var handle = readMovementInputJob.Schedule(Dependency);
+        handle.Complete();
     }
+
+    public struct ReadMovementInputJob : IJob
+    {
+        public float2 newMovementInput;
+        public Entity Player;
+        public ComponentDataFromEntity<MovementDirectionInputComponent> GetMovementInput;
+        public EntityCommandBuffer.Concurrent EntityCommandBuffer;
+        public void Execute()
+        {
+            var movementInput = GetMovementInput[Player];
+            movementInput.NewValue = newMovementInput;
+            EntityCommandBuffer.SetComponent<MovementDirectionInputComponent>(0, Player, movementInput);
+        }
+    }
+
+    #endregion read movement input
 
     private void readDodgeInput()
     {
 
     }
-
+    #region read look input
     private void readLookInput(float2 Direction)
     {
-        Direction -= screenZero;
-        if (lookInputOutsideOfScreen(Direction)) { Direction = float2.zero; }
-        var lookInput = Manager.GetComponentData<LookDirectionInputComponent>(PlayerPhysics);
-        //Debug.Log(Direction.ToString());
-        lookInput.Value = Direction;
-        Manager.SetComponentData<LookDirectionInputComponent>(PlayerPhysics, lookInput);
+        var ecb_concurrent = endSimulationEntityCommandBufferSystem
+            .CreateCommandBuffer()
+            .ToConcurrent();
+        var readLookInputJob = new ReadLookInputJob
+        {
+            newLookInput = Direction,
+            ScreenZero = screenZero,
+            Player = PlayerPhysics,
+            EntityCommandBuffer = ecb_concurrent,
+            GetLookInput = GetComponentDataFromEntity<LookDirectionInputComponent>(),
+        };
+
+        var handle = readLookInputJob.Schedule(Dependency);
+        handle.Complete();
     }
 
-    private bool lookInputOutsideOfScreen(float2 Input)
+    public struct ReadLookInputJob : IJob
     {
-        return (math.abs(Input.x) > math.abs(screenZero.x) || math.abs(Input.y) > math.abs(screenZero.y));
+        public float2 newLookInput;
+        public float2 ScreenZero;
+        public Entity Player;
+        public ComponentDataFromEntity<LookDirectionInputComponent> GetLookInput;
+        public EntityCommandBuffer.Concurrent EntityCommandBuffer;
+        public void Execute()
+        {
+            newLookInput -= ScreenZero;
+            if (lookInputOutsideOfScreen(newLookInput)) { return; }
+            var lookInput = GetLookInput[Player];
+            lookInput.Value = newLookInput;
+            EntityCommandBuffer.SetComponent<LookDirectionInputComponent>(0, Player, lookInput);
+        }
+
+        private bool lookInputOutsideOfScreen(float2 Input)
+        {
+            return (math.abs(Input.x) > math.abs(ScreenZero.x) || math.abs(Input.y) > math.abs(ScreenZero.y));
+        }
     }
+    #endregion lookInput
 
     #endregion
 
