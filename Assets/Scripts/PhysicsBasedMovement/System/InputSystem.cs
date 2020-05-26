@@ -8,40 +8,47 @@ public class InputSystem : SystemBase
 {
     private PlayerAction PlayerInput;
     private EntityManager Manager;
-    private float2 OldMovementDirectionOrder;
-    public NativeArray<Vector2> MovementDirectionOrder;
+    private Entity PlayerPhysics;
+    private int screenWidth, screenHeight;
+    private float2 screenZero;
 
     protected override void OnCreate()
     {
+        screenWidth = Display.main.systemWidth;
+        screenHeight = Display.main.systemHeight;
+        screenZero = new float2(screenWidth / 2, screenHeight / 2);
+
         PlayerInput = new PlayerAction();
-        MovementDirectionOrder = new NativeArray<Vector2>(1, Allocator.Persistent);
+
         Manager = World
             .DefaultGameObjectInjectionWorld
             .EntityManager;
+
         activateDodgeEvents();
         activatingMovementEvents();
+        activateLookEvents();
     }
 
     protected override void OnDestroy()
     {
-        MovementDirectionOrder.Dispose();
         deactivateDodgeEvents();
         deactivatingMovementEvents();
+        deactivateLookEvents();
     }
 
     #region Activation Behaviour
     protected override void OnStartRunning()
     {
+        //Debug.Log("width: " + Camera.main.scaledPixelWidth + ", height: " + Camera.main.scaledPixelHeight);
         PlayerInput.Enable();
 
         var Player = GetSingletonEntity<PlayerTag>();
-        Manager.AddComponentData(Player, new InputHoldComponent { Value = 0 });
         var buffer = GetBufferFromEntity<LinkedEntityGroup>()[Player].Reinterpret<Entity>();
         foreach (var entity in buffer)
         {
             if (HasComponent<PhysicsVelocity>(entity))
             {
-                var PlayerPhysics = entity;
+                PlayerPhysics = entity;
                 Manager.AddComponentData(PlayerPhysics, new PlayerPhysicsTag { });
                 break;
             }
@@ -59,6 +66,7 @@ public class InputSystem : SystemBase
 
     private void activateDodgeEvents()
     {
+        // Dodge Input
         PlayerInput.Player.DodgeForwardPressAsButton.performed += _ => readDodgeInput();
     }
 
@@ -84,9 +92,24 @@ public class InputSystem : SystemBase
 
     }
 
+    private void activateLookEvents()
+    {
+        // look input
+        PlayerInput.Player.Look.performed +=
+            _ => readLookInput(PlayerInput.Player.Look.ReadValue<Vector2>());
+    }
+
     private void deactivateDodgeEvents()
     {
+        // DodgeInput
         PlayerInput.Player.DodgeForwardPressAsButton.performed -= _ => readDodgeInput();
+    }
+
+    private void deactivateLookEvents()
+    {
+        // look input
+        PlayerInput.Player.Look.performed -=
+            _ => readLookInput(PlayerInput.Player.Look.ReadValue<Vector2>());
     }
 
     private void deactivatingMovementEvents()
@@ -114,14 +137,31 @@ public class InputSystem : SystemBase
     #endregion
 
     #region Reading input
-    private void readMovementInput(Vector2 MovementDirection)
+    private void readMovementInput(float2 MovementDirection)
     {
-        MovementDirectionOrder[0] = MovementDirection;
+        var movementInput = Manager.GetComponentData<MovementDirectionInputComponent>(PlayerPhysics);
+        movementInput.NewValue = MovementDirection;
+        Manager.SetComponentData<MovementDirectionInputComponent>(PlayerPhysics, movementInput);
     }
 
     private void readDodgeInput()
     {
 
+    }
+
+    private void readLookInput(float2 Direction)
+    {
+        Direction -= screenZero;
+        if (lookInputOutsideOfScreen(Direction)) { Direction = float2.zero; }
+        var lookInput = Manager.GetComponentData<LookDirectionInputComponent>(PlayerPhysics);
+        //Debug.Log(Direction.ToString());
+        lookInput.Value = Direction;
+        Manager.SetComponentData<LookDirectionInputComponent>(PlayerPhysics, lookInput);
+    }
+
+    private bool lookInputOutsideOfScreen(float2 Input)
+    {
+        return (math.abs(Input.x) > math.abs(screenZero.x) || math.abs(Input.y) > math.abs(screenZero.y));
     }
 
     #endregion
@@ -130,18 +170,16 @@ public class InputSystem : SystemBase
     protected override void OnUpdate()
     {
         var maxDurationValue = new float3(.8f, 0, .8f);
-        var nextMoveOrder = new float2(MovementDirectionOrder[0]);
-        var oldOrder = new NativeArray<float2>(1, Allocator.TempJob);
-        oldOrder[0] = OldMovementDirectionOrder;
+
         var DeltaTime = Time.DeltaTime;
         var handle = Entities.WithName("GetInputHoldDuration")
-            .WithAll<PlayerTag>()
+            .WithAll<PlayerPhysicsTag>()
             .WithNone<Prefab>()
             .ForEach(
-                (ref InputHoldComponent InputHoldComponent) =>
+                (ref InputHoldComponent InputHoldComponent, ref MovementDirectionInputComponent movementInput) =>
                 {
-                    if (nextMoveOrder.Equals(oldOrder[0])
-                        && !(nextMoveOrder.Equals(float2.zero)))
+                    if (movementInput.NewValue.Equals(movementInput.OldValue)
+                        && !(movementInput.NewValue.Equals(float2.zero)))
                     {
                         var holdValue = DeltaTime * 2; // increased value to make startup velocity a bit faster 
 
@@ -152,11 +190,9 @@ public class InputSystem : SystemBase
                     else
                     { InputHoldComponent.Value = float3.zero; }
 
-                    oldOrder[0] = nextMoveOrder;
+                    movementInput.OldValue = movementInput.NewValue;
                 }
         ).Schedule(Dependency);
         handle.Complete();
-        OldMovementDirectionOrder = oldOrder[0];
-        oldOrder.Dispose();
     }
 }
