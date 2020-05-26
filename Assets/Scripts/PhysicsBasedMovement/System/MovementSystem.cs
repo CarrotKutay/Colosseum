@@ -23,10 +23,9 @@ public class MovementSystem : SystemBase
 
     protected override void OnUpdate()
     {
-        var ecb = endSimulationEntityCommandBufferSystem.CreateCommandBuffer().ToConcurrent();
         var Player = GetSingletonEntity<PlayerTag>();
         var getHoldInputDuration = GetComponentDataFromEntity<InputHoldComponent>(true);
-        var nextOrderFromQueue = InputSystem.MovementDirectionOrder[0];
+        var getNextMovementInput = GetComponentDataFromEntity<MovementDirectionInputComponent>(true);
         float3 maxVelocity = new float3(9.81f, 9.81f, 9.81f); // incorporating terminal velocity (no free fall)
 
         Entities.WithName("Move_Player")
@@ -35,7 +34,8 @@ public class MovementSystem : SystemBase
             .ForEach(
                 (int entityInQueryIndex, ref PhysicsVelocity physicsVelocity) =>
                 {
-                    var moveOrder = new float3(nextOrderFromQueue.x, 0, nextOrderFromQueue.y);
+                    var movementInput = getNextMovementInput[Player];
+                    var moveOrder = new float3(movementInput.NewValue.x, 0, movementInput.NewValue.y);
                     var holdDuration = getHoldInputDuration[Player];
 
                     if (holdDuration.Value.Equals(float3.zero) && moveOrder.Equals(float3.zero))
@@ -49,6 +49,7 @@ public class MovementSystem : SystemBase
                     }
                 }
         )
+        .WithReadOnly(getNextMovementInput)
         .WithReadOnly(getHoldInputDuration)
         .Schedule();
     }

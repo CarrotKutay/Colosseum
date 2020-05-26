@@ -216,6 +216,8 @@ GameObject:
   - component: {fileID: 4260431165245277472}
   - component: {fileID: 4064267118410567286}
   - component: {fileID: 4064267118410567305}
+  - component: {fileID: 1348250988532382530}
+  - component: {fileID: 1452994389441653916}
   m_Layer: 0
   m_Name: Player 1
   m_TagString: Untagged
@@ -263,3 +265,36 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   ConversionMode: 0
+--- !u!114 &1348250988532382530
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4064267118410567304}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b36b8ab66d35eb04f9ec42e835094596, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  NewValue:
+    x: 0
+    y: 0
+  OldValue:
+    x: 0
+    y: 0
+--- !u!114 &1452994389441653916
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4064267118410567304}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4a2fd68ef26ebb947986cf1598670dc8, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  Value:
+    x: 0
+    y: 0

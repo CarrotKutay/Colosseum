@@ -8,33 +8,36 @@ public class InputSystem : SystemBase
 {
     private PlayerAction PlayerInput;
     private EntityManager Manager;
-    private float2 OldMovementDirectionOrder;
-    public NativeArray<Vector2> MovementDirectionOrder;
+    private float2 OldMovementDirectionInput;
+    private Entity Player;
 
     protected override void OnCreate()
     {
         PlayerInput = new PlayerAction();
-        MovementDirectionOrder = new NativeArray<Vector2>(1, Allocator.Persistent);
+
         Manager = World
             .DefaultGameObjectInjectionWorld
             .EntityManager;
+
         activateDodgeEvents();
         activatingMovementEvents();
+        activateLookEvents();
     }
 
     protected override void OnDestroy()
     {
-        MovementDirectionOrder.Dispose();
         deactivateDodgeEvents();
         deactivatingMovementEvents();
+        deactivateLookEvents();
     }
 
     #region Activation Behaviour
     protected override void OnStartRunning()
     {
+        //Debug.Log("width: " + Camera.main.scaledPixelWidth + ", height: " + Camera.main.scaledPixelHeight);
         PlayerInput.Enable();
 
-        var Player = GetSingletonEntity<PlayerTag>();
+        Player = GetSingletonEntity<PlayerTag>();
         Manager.AddComponentData(Player, new InputHoldComponent { Value = 0 });
         var buffer = GetBufferFromEntity<LinkedEntityGroup>()[Player].Reinterpret<Entity>();
         foreach (var entity in buffer)
@@ -59,6 +62,7 @@ public class InputSystem : SystemBase
 
     private void activateDodgeEvents()
     {
+        // Dodge Input
         PlayerInput.Player.DodgeForwardPressAsButton.performed += _ => readDodgeInput();
     }
 
@@ -84,9 +88,24 @@ public class InputSystem : SystemBase
 
     }
 
+    private void activateLookEvents()
+    {
+        // look input
+        PlayerInput.Player.Look.performed +=
+            _ => readLookInput(PlayerInput.Player.Look.ReadValue<Vector2>());
+    }
+
     private void deactivateDodgeEvents()
     {
+        // DodgeInput
         PlayerInput.Player.DodgeForwardPressAsButton.performed -= _ => readDodgeInput();
+    }
+
+    private void deactivateLookEvents()
+    {
+        // look input
+        PlayerInput.Player.Look.performed -=
+            _ => readLookInput(PlayerInput.Player.Look.ReadValue<Vector2>());
     }
 
     private void deactivatingMovementEvents()
@@ -114,14 +133,23 @@ public class InputSystem : SystemBase
     #endregion
 
     #region Reading input
-    private void readMovementInput(Vector2 MovementDirection)
+    private void readMovementInput(float2 MovementDirection)
     {
-        MovementDirectionOrder[0] = MovementDirection;
+        var movementInput = GetComponent<MovementDirectionInputComponent>(Player);
+        movementInput.NewValue = MovementDirection;
+        SetComponent<MovementDirectionInputComponent>(Player, movementInput);
     }
 
     private void readDodgeInput()
     {
 
+    }
+
+    private void readLookInput(float2 Direction)
+    {
+        var lookInput = GetComponent<LookDirectionInputComponent>(Player);
+        lookInput.Value = Direction;
+        SetComponent<LookDirectionInputComponent>(Player, lookInput);
     }
 
     #endregion
@@ -130,18 +158,16 @@ public class InputSystem : SystemBase
     protected override void OnUpdate()
     {
         var maxDurationValue = new float3(.8f, 0, .8f);
-        var nextMoveOrder = new float2(MovementDirectionOrder[0]);
-        var oldOrder = new NativeArray<float2>(1, Allocator.TempJob);
-        oldOrder[0] = OldMovementDirectionOrder;
+
         var DeltaTime = Time.DeltaTime;
         var handle = Entities.WithName("GetInputHoldDuration")
             .WithAll<PlayerTag>()
             .WithNone<Prefab>()
             .ForEach(
-                (ref InputHoldComponent InputHoldComponent) =>
+                (ref InputHoldComponent InputHoldComponent, ref MovementDirectionInputComponent movementInput) =>
                 {
-                    if (nextMoveOrder.Equals(oldOrder[0])
-                        && !(nextMoveOrder.Equals(float2.zero)))
+                    if (movementInput.NewValue.Equals(movementInput.OldValue)
+                        && !(movementInput.NewValue.Equals(float2.zero)))
                     {
                         var holdValue = DeltaTime * 2; // increased value to make startup velocity a bit faster 
 
@@ -152,11 +178,9 @@ public class InputSystem : SystemBase
                     else
                     { InputHoldComponent.Value = float3.zero; }
 
-                    oldOrder[0] = nextMoveOrder;
+                    movementInput.OldValue = movementInput.NewValue;
                 }
         ).Schedule(Dependency);
         handle.Complete();
-        OldMovementDirectionOrder = oldOrder[0];
-        oldOrder.Dispose();
     }
 }
