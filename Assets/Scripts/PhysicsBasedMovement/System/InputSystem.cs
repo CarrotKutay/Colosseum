@@ -8,11 +8,16 @@ public class InputSystem : SystemBase
 {
     private PlayerAction PlayerInput;
     private EntityManager Manager;
-    private float2 OldMovementDirectionInput;
-    private Entity Player;
+    private Entity PlayerPhysics;
+    private int screenWidth, screenHeight;
+    private float2 screenZero;
 
     protected override void OnCreate()
     {
+        screenWidth = Display.main.systemWidth;
+        screenHeight = Display.main.systemHeight;
+        screenZero = new float2(screenWidth / 2, screenHeight / 2);
+
         PlayerInput = new PlayerAction();
 
         Manager = World
@@ -37,14 +42,13 @@ public class InputSystem : SystemBase
         //Debug.Log("width: " + Camera.main.scaledPixelWidth + ", height: " + Camera.main.scaledPixelHeight);
         PlayerInput.Enable();
 
-        Player = GetSingletonEntity<PlayerTag>();
-        Manager.AddComponentData(Player, new InputHoldComponent { Value = 0 });
+        var Player = GetSingletonEntity<PlayerTag>();
         var buffer = GetBufferFromEntity<LinkedEntityGroup>()[Player].Reinterpret<Entity>();
         foreach (var entity in buffer)
         {
             if (HasComponent<PhysicsVelocity>(entity))
             {
-                var PlayerPhysics = entity;
+                PlayerPhysics = entity;
                 Manager.AddComponentData(PlayerPhysics, new PlayerPhysicsTag { });
                 break;
             }
@@ -135,9 +139,9 @@ public class InputSystem : SystemBase
     #region Reading input
     private void readMovementInput(float2 MovementDirection)
     {
-        var movementInput = GetComponent<MovementDirectionInputComponent>(Player);
+        var movementInput = Manager.GetComponentData<MovementDirectionInputComponent>(PlayerPhysics);
         movementInput.NewValue = MovementDirection;
-        SetComponent<MovementDirectionInputComponent>(Player, movementInput);
+        Manager.SetComponentData<MovementDirectionInputComponent>(PlayerPhysics, movementInput);
     }
 
     private void readDodgeInput()
@@ -147,9 +151,17 @@ public class InputSystem : SystemBase
 
     private void readLookInput(float2 Direction)
     {
-        var lookInput = GetComponent<LookDirectionInputComponent>(Player);
+        Direction -= screenZero;
+        if (lookInputOutsideOfScreen(Direction)) { Direction = float2.zero; }
+        var lookInput = Manager.GetComponentData<LookDirectionInputComponent>(PlayerPhysics);
+        //Debug.Log(Direction.ToString());
         lookInput.Value = Direction;
-        SetComponent<LookDirectionInputComponent>(Player, lookInput);
+        Manager.SetComponentData<LookDirectionInputComponent>(PlayerPhysics, lookInput);
+    }
+
+    private bool lookInputOutsideOfScreen(float2 Input)
+    {
+        return (math.abs(Input.x) > math.abs(screenZero.x) || math.abs(Input.y) > math.abs(screenZero.y));
     }
 
     #endregion
@@ -161,7 +173,7 @@ public class InputSystem : SystemBase
 
         var DeltaTime = Time.DeltaTime;
         var handle = Entities.WithName("GetInputHoldDuration")
-            .WithAll<PlayerTag>()
+            .WithAll<PlayerPhysicsTag>()
             .WithNone<Prefab>()
             .ForEach(
                 (ref InputHoldComponent InputHoldComponent, ref MovementDirectionInputComponent movementInput) =>

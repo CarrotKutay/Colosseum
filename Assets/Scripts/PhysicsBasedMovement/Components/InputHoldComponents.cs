@@ -3,6 +3,7 @@ using Unity.Entities;
 using Unity.Mathematics;
 
 [Serializable]
+[GenerateAuthoringComponent]
 public struct InputHoldComponent : IComponentData
 {
     // Add fields to your component here. Remember that:

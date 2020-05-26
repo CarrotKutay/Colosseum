@@ -30,7 +30,7 @@ public class @PlayerAction : IInputActionCollection, IDisposable
                     ""name"": ""Look"",
                     ""type"": ""Value"",
                     ""id"": ""b8a5dae7-4bfc-4e27-9651-433357243dee"",
-                    ""expectedControlType"": ""Vector2"",
+                    ""expectedControlType"": ""Axis"",
                     ""processors"": """",
                     ""interactions"": """"
                 },
