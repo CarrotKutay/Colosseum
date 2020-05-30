@@ -6,6 +6,7 @@ using Unity.Transforms;
 using Unity.Physics;
 using Unity.Physics.Extensions;
 
+[UpdateAfter(typeof(MovementSystem))]
 public class PlayerInputTurnSystem : SystemBase
 {
 

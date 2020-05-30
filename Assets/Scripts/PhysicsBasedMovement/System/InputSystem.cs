@@ -147,7 +147,8 @@ public class InputSystem : SystemBase
     #region read movement input
     private void readMovementInput(float2 MovementDirection)
     {
-        var ecb_concurrent = endSimulationEntityCommandBufferSystem
+        // * version 1
+        /* var ecb_concurrent = endSimulationEntityCommandBufferSystem
             .CreateCommandBuffer()
             .ToConcurrent();
         var ReadMovementComponent = GetComponentDataFromEntity<MovementDirectionInputComponent>();
@@ -160,7 +161,34 @@ public class InputSystem : SystemBase
             Player = PlayerPhysics,
         };
         var handle = readMovementInputJob.Schedule(Dependency);
-        handle.Complete();
+        handle.Complete(); */
+
+        // * version 2
+        var ecb_concurrent = endSimulationEntityCommandBufferSystem
+            .CreateCommandBuffer()
+            .ToConcurrent();
+        var ReadMovementComponent = GetComponentDataFromEntity<MovementDirectionInputComponent>();
+        var Player = PlayerPhysics;
+
+        Job.WithName("ReadMovementinput")
+            .WithCode(() =>
+            {
+                var movementInput = ReadMovementComponent[Player];
+                movementInput.NewValue = MovementDirection;
+                ecb_concurrent.SetComponent<MovementDirectionInputComponent>(0, Player, movementInput);
+            }
+        ).Schedule();
+
+        // * version 3
+        /* Entities.WithName("ReadMovementInput")
+            .WithAll<PlayerPhysicsTag>()
+            .WithNone<Prefab>()
+            .ForEach(
+                (ref MovementDirectionInputComponent movementInput) =>
+                {
+                    movementInput.NewValue = MovementDirection;
+                }
+            ).Schedule(); */
     }
 
     public struct ReadMovementInputJob : IJob

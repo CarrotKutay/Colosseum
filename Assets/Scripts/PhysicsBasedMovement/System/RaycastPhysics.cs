@@ -45,7 +45,7 @@ public class RaycastPhysics : SystemBase
         return rcj;
     }
 
-    public Entity Raycast(float3 RayFrom, float3 RayTo)
+    public float3 RaycastForSurfaceNirmal(float3 RayFrom, float3 RayTo)
     {
         var physicsWorldSystem = World.DefaultGameObjectInjectionWorld.GetExistingSystem<Unity.Physics.Systems.BuildPhysicsWorld>();
         var collisionWorld = physicsWorldSystem.PhysicsWorld.CollisionWorld;
@@ -63,15 +63,21 @@ public class RaycastPhysics : SystemBase
 
         RaycastHit hit = new RaycastHit();
 
+        var inputArray = new NativeArray<RaycastInput>(1, Allocator.TempJob);
+        inputArray[0] = input;
+        var resultArray = new NativeArray<RaycastHit>(1, Allocator.TempJob);
+
+        var handle = ScheduleBatchRayCast(collisionWorld, inputArray, resultArray);
+
         bool haveHit = collisionWorld.CastRay(input, out hit);
         if (haveHit)
         {
             // see hit.Position
             // see hit.SurfaceNormal
-            Entity e = physicsWorldSystem.PhysicsWorld.Bodies[hit.RigidBodyIndex].Entity;
-            return e;
+            // Entity e = physicsWorldSystem.PhysicsWorld.Bodies[hit.RigidBodyIndex].Entity;
+            return hit.SurfaceNormal;
         }
-        return Entity.Null;
+        return new float3(float.MaxValue, float.MaxValue, float.MaxValue);
     }
 
     protected override void OnUpdate()
