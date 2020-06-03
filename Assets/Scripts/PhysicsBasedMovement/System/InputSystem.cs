@@ -4,14 +4,14 @@ using Unity.Physics;
 using UnityEngine;
 using Unity.Mathematics;
 using Unity.Jobs;
-
+using Unity.Transforms;
+[UpdateBefore(typeof(PlayerInputTurnSystem))]
 public class InputSystem : SystemBase
 {
     private PlayerAction PlayerInput;
     private EntityManager Manager;
     private Entity PlayerPhysics;
-    private int screenWidth, screenHeight;
-    private float2 screenZero;
+    private float3 LookDirection;
     private EndSimulationEntityCommandBufferSystem endSimulationEntityCommandBufferSystem;
 
     protected override void OnCreate()
@@ -20,9 +20,6 @@ public class InputSystem : SystemBase
                 .DefaultGameObjectInjectionWorld
                 .GetOrCreateSystem<EndSimulationEntityCommandBufferSystem>();
 
-        screenWidth = Display.main.systemWidth;
-        screenHeight = Display.main.systemHeight;
-        screenZero = new float2(screenWidth / 2, screenHeight / 2);
 
         PlayerInput = new PlayerAction();
 
@@ -214,41 +211,22 @@ public class InputSystem : SystemBase
     #region read look input
     private void readLookInput(float2 Direction)
     {
-        var ecb_concurrent = endSimulationEntityCommandBufferSystem
-            .CreateCommandBuffer()
-            .ToConcurrent();
-        var readLookInputJob = new ReadLookInputJob
-        {
-            newLookInput = Direction,
-            ScreenZero = screenZero,
-            Player = PlayerPhysics,
-            EntityCommandBuffer = ecb_concurrent,
-            GetLookInput = GetComponentDataFromEntity<LookDirectionInputComponent>(),
-        };
-
-        var handle = readLookInputJob.Schedule(Dependency);
-        handle.Complete();
+        var playerPosition = GetComponentDataFromEntity<Translation>(true)[PlayerPhysics].Value;
+        var playerScreenPosition = new float3(UnityEngine.Camera.main.WorldToScreenPoint(playerPosition));
+        LookDirection = new float3(Direction.x - playerScreenPosition.x, 0, Direction.y - playerScreenPosition.y);
     }
 
     public struct ReadLookInputJob : IJob
     {
-        public float2 newLookInput;
-        public float2 ScreenZero;
+        public float3 newLookInput;
         public Entity Player;
         public ComponentDataFromEntity<LookDirectionInputComponent> GetLookInput;
         public EntityCommandBuffer.Concurrent EntityCommandBuffer;
         public void Execute()
         {
-            newLookInput -= ScreenZero;
-            if (lookInputOutsideOfScreen(newLookInput)) { return; }
             var lookInput = GetLookInput[Player];
             lookInput.Value = newLookInput;
             EntityCommandBuffer.SetComponent<LookDirectionInputComponent>(0, Player, lookInput);
-        }
-
-        private bool lookInputOutsideOfScreen(float2 Input)
-        {
-            return (math.abs(Input.x) > math.abs(ScreenZero.x) || math.abs(Input.y) > math.abs(ScreenZero.y));
         }
     }
     #endregion lookInput
@@ -259,8 +237,24 @@ public class InputSystem : SystemBase
     protected override void OnUpdate()
     {
         var maxDurationValue = new float3(.8f, 0, .8f);
-
         var DeltaTime = Time.DeltaTime;
+        var ecb_concurrent = endSimulationEntityCommandBufferSystem
+            .CreateCommandBuffer()
+            .ToConcurrent();
+
+        // * scheduling job to update the inputLook direction
+        var readLookInputJob = new ReadLookInputJob
+        {
+            newLookInput = LookDirection,
+            Player = PlayerPhysics,
+            EntityCommandBuffer = ecb_concurrent,
+            GetLookInput = GetComponentDataFromEntity<LookDirectionInputComponent>(),
+        };
+
+        var lookHandle = readLookInputJob.Schedule(Dependency);
+        Dependency = JobHandle.CombineDependencies(Dependency, lookHandle);
+
+        // * scheduling job to update the inputHold duration on movement related input
         var handle = Entities.WithName("GetInputHoldDuration")
             .WithAll<PlayerPhysicsTag>()
             .WithNone<Prefab>()
@@ -282,6 +276,6 @@ public class InputSystem : SystemBase
                     movementInput.OldValue = movementInput.NewValue;
                 }
         ).Schedule(Dependency);
-        handle.Complete();
+        Dependency = JobHandle.CombineDependencies(Dependency, handle);
     }
 }
