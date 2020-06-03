@@ -9,14 +9,10 @@ using Unity.Physics.Extensions;
 [UpdateAfter(typeof(MovementSystem))]
 public class PlayerInputTurnSystem : SystemBase
 {
+    private Entity Player;
 
-    protected override void OnCreate()
-    {
-    }
     protected override void OnUpdate()
     {
-        /* var PlayerPhysics = GetSingletonEntity<PlayerPhysicsTag>();
-        var getPlayerPosition = GetComponentDataFromEntity<Translation>(true); */
 
         Entities.WithName("TurnPlayerTowardsInput")
             .WithAll<PlayerPhysicsTag>()
@@ -31,8 +27,11 @@ public class PlayerInputTurnSystem : SystemBase
                     // * Turn velocity
                     var angularVelocityStrength = 15f;
                     // * normalized look input direction
-                    var lookInput = math.normalizesafe(new float3(LookDirectionInput.Value.x, 0, LookDirectionInput.Value.y));
+                    // * we do not need the forward vector, but the vector from player to TurnInput 
+                    var lookInput = math.normalizesafe(LookDirectionInput.Value);
                     // * normalized forward vector of player
+                    UnityEngine.Debug.DrawRay(LocalToWorld.Position, LocalToWorld.Forward, UnityEngine.Color.red);
+                    UnityEngine.Debug.DrawRay(LocalToWorld.Position, lookInput, UnityEngine.Color.blue);
                     var playerForward = math.normalizesafe(LocalToWorld.Forward);
                     //var debugPlayerPosition = getPlayerPosition[PlayerPhysics].Value;
 
@@ -42,7 +41,7 @@ public class PlayerInputTurnSystem : SystemBase
                     /* 
                        * Here we determine the difference between the angle value of the lookInput and
                        * the player forward vector. Furthermore, we alter the difference to always use the
-                       * small difference, since we want the player to turn efficiently
+                       * small difference, since we want the player to turn efficiently and as fast as possible
                      */
                     var inputToPlayerDifference = radiansLookInput - radiansPlayerForward;
                     if (math.abs(inputToPlayerDifference) > math.PI)
@@ -75,9 +74,5 @@ public class PlayerInputTurnSystem : SystemBase
             )
             //.WithReadOnly(getPlayerPosition)
             .Schedule();
-
-
     }
-
-
 }

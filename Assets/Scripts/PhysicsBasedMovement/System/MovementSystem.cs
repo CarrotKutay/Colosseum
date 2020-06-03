@@ -74,9 +74,7 @@ public class MovementSystem : SystemBase
         float3 maxVelocity = new float3(9.81f, 9.81f, 9.81f); // incorporating terminal velocity (no free fall)
 
         var collisionWorld = physicsWorldSystem.PhysicsWorld.CollisionWorld;
-        var entityCommandBuffer = endSimulationEntityCommandBufferSystem
-            .CreateCommandBuffer()
-            .ToConcurrent();
+
         var raycastResult = new NativeArray<RaycastHit>(1, Allocator.TempJob);
         var Player = PlayerPhysics;
 
@@ -151,8 +149,6 @@ public class MovementSystem : SystemBase
                         //physicsVelocity.Linear += moveOrder * holdDurationInput.Value;
                         ComponentExtensions.ApplyLinearImpulse(ref physicsVelocity, mass, moveOrder * baseMovementSpeed.Value);
                         physicsVelocity.Linear = math.clamp(physicsVelocity.Linear, -maxVelocity, maxVelocity);
-
-                        //entityCommandBuffer.SetComponent<PhysicsVelocity>(entityInQueryIndex, Player, physicsVelocity);
                     }
                 }
         )
