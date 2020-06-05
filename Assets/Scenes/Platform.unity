@@ -333,6 +333,7 @@ GameObject:
   - component: {fileID: 1397282792}
   - component: {fileID: 1397282795}
   - component: {fileID: 1397282791}
+  - component: {fileID: 1397282796}
   m_Layer: 0
   m_Name: Ground
   m_TagString: Untagged
@@ -408,7 +409,7 @@ MonoBehaviour:
       m_Value: 0101010101010101010101010101010101010101010101010101010101010101
     m_RaisesCollisionEvents:
       m_Override: 0
-      m_Value: 0
+      m_Value: 1
     m_CustomTags:
       m_Override: 0
       m_Value: 0000000000000000
@@ -489,6 +490,19 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   ConversionMode: 0
+--- !u!114 &1397282796
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1397282790}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ade404fc0d752f747babcdad47c68f72, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  UseCollisionDetails: 1
 --- !u!1 &1514705444
 GameObject:
   m_ObjectHideFlags: 0
@@ -548,6 +562,7 @@ GameObject:
   - component: {fileID: 1742926917}
   - component: {fileID: 1742926916}
   - component: {fileID: 1742926912}
+  - component: {fileID: 1742926918}
   m_Layer: 0
   m_Name: Slope
   m_TagString: Untagged
@@ -753,6 +768,19 @@ MonoBehaviour:
       m_Override: 0
       m_Value: 0000000000000000
   m_ConvexRadius_Deprecated: -1
+--- !u!114 &1742926918
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1742926911}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ade404fc0d752f747babcdad47c68f72, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  UseCollisionDetails: 1
 --- !u!1 &1833764604
 GameObject:
   m_ObjectHideFlags: 0

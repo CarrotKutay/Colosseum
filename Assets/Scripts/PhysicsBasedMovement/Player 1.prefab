@@ -17,6 +17,7 @@ GameObject:
   - component: {fileID: 7718657315688775384}
   - component: {fileID: 5112502321423387290}
   - component: {fileID: 4554032659563270535}
+  - component: {fileID: 991940557537939715}
   m_Layer: 0
   m_Name: Model
   m_TagString: Untagged
@@ -155,7 +156,7 @@ MonoBehaviour:
       m_Value: 0101010101010101010101010101010101010101010101010101010101010101
     m_RaisesCollisionEvents:
       m_Override: 0
-      m_Value: 0
+      m_Value: 1
     m_CustomTags:
       m_Override: 0
       m_Value: 0000000000000000
@@ -242,6 +243,7 @@ MonoBehaviour:
   Value:
     x: 0
     y: 0
+    z: 0
 --- !u!114 &5112502321423387290
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -271,6 +273,19 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   Value: 70
+--- !u!114 &991940557537939715
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4045977045713138805}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ade404fc0d752f747babcdad47c68f72, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  UseCollisionDetails: 1
 --- !u!1 &4064267118410567304
 GameObject:
   m_ObjectHideFlags: 0

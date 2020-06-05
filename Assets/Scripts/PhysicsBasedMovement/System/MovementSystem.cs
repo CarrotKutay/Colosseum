@@ -45,27 +45,61 @@ public class MovementSystem : SystemBase
 
             var rayDirection = math.normalizesafe(math.cross(playerRight, playerForward));
 
-
             BitField32 filter = new BitField32();
-            filter.SetBits(1, true, 31);
-            filter.SetBits(0, false);
+            filter.SetBits(1, false, 31);
+            filter.SetBits(0, true);
 
-
-            RaycastInput input = new RaycastInput()
+            var dynamicBodies = world.DynamicBodies.ToArray();
+            if (searchForRigidBodyIn(dynamicBodies, filter, out RigidBody rigidBody))
             {
-                Start = playerPosition,
-                End = playerPosition + rayDirection * 2,
-                Filter = new CollisionFilter()
+                var allBodies = world.Bodies.ToArray();
+                if (aabbOverlapsWith(allBodies, rigidBody))
                 {
-                    BelongsTo = ~0u,
-                    CollidesWith = filter.GetBits(0, 32), // all 1s, so all layers, exept layer 0 = player layer
-                    GroupIndex = 0
-                }
-            };
+                    UnityEngine.Debug.Log("colliding");
+                    filter.SetBits(1, true, 31);
+                    filter.SetBits(0, false);
 
-            RaycastHit hit;
-            world.CastRay(input, out hit);
-            results[0] = hit;
+                    RaycastInput input = new RaycastInput()
+                    {
+                        Start = playerPosition,
+                        End = playerPosition + rayDirection,
+                        Filter = new CollisionFilter()
+                        {
+                            BelongsTo = ~0u,
+                            CollidesWith = filter.GetBits(0, 32), // all 1s, so all layers, exept layer 0 = player layer
+                            GroupIndex = 0
+                        }
+                    };
+
+                    RaycastHit hit;
+                    world.CastRay(input, out hit);
+                    results[0] = hit;
+                }
+            }
+
+        }
+
+        private bool searchForRigidBodyIn(RigidBody[] bodies, BitField32 filter, out RigidBody rigidBody)
+        {
+            rigidBody = RigidBody.Zero;
+
+            foreach (var body in bodies)
+            {
+                if (body.CustomTags.Equals((byte)filter.Value)) { rigidBody = body; break; }
+            }
+
+            return !rigidBody.Equals(RigidBody.Zero);
+        }
+
+        private bool aabbOverlapsWith(RigidBody[] bodies, RigidBody item)
+        {
+            bool overlap = false;
+            foreach (var body in bodies)
+            {
+                if (item.Equals(body) || overlap == true) break;
+            }
+
+            return overlap;
         }
     }
 
@@ -124,21 +158,16 @@ public class MovementSystem : SystemBase
                 in LocalToWorld localToWorld,
                 in MovementSpeedComponent baseMovementSpeed) =>
                 {
-                    // * getting raycast results 
-                    var groundSurfaceNormal = raycastResult[0].SurfaceNormal;
-                    var yDirection = math.normalizesafe(math.cross(groundSurfaceNormal, raycastResult[0].Position + new float3(1, 0, 0))).y;
-
-                    /* // debug
-                    UnityEngine.Debug.DrawRay(raycastResult[0].Position, groundNormal * 2, UnityEngine.Color.red);
-                    UnityEngine.Debug.DrawRay(raycastResult[0].Position, newForward * 2, UnityEngine.Color.blue);
-                    UnityEngine.Debug.DrawRay(raycastResult[0].Position, localToWorld.Forward * 2, UnityEngine.Color.magenta);  */
+                    float yDirectionForce = raycastResult[0].Entity.Equals(Entity.Null) ? // * check for collision feedback from ray cast
+                        0 : // * if no entity found -> 'free fall' no yDirectionForce needed
+                        math.normalizesafe(math.cross(raycastResult[0].SurfaceNormal, raycastResult[0].Position)).y;
 
                     // determining movement direction in regards to y - direction : up- or downhill
                     var slopeFactor = movementInput.NewValue.y >= 0 ? 1f : -1f;
 
                     // * movement 
-                    var moveOrder = math.normalizesafe(new float3(movementInput.NewValue.x, yDirection * slopeFactor, movementInput.NewValue.y));
-                    UnityEngine.Debug.DrawRay(localToWorld.Position, moveOrder, UnityEngine.Color.green);
+                    var moveOrder = math.normalizesafe(new float3(movementInput.NewValue.x, yDirectionForce * slopeFactor, movementInput.NewValue.y));
+                    UnityEngine.Debug.DrawRay(raycastResult[0].Position, moveOrder, UnityEngine.Color.green);
 
                     if (holdDurationInput.Value.Equals(float3.zero) && moveOrder.Equals(float3.zero))
                     {
