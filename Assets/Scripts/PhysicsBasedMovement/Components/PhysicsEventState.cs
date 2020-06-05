@@ -1,4 +1,4 @@
-public enum PhysicsEventState
+public enum PhysicsCollisionEventState
 {
     Enter, Stay, Exit
 }

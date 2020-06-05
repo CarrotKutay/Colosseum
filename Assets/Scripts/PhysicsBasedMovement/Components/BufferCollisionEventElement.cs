@@ -7,7 +7,7 @@ public struct BufferCollisionEventElement : IBufferElementData
     public bool HasCollisionDetails;
     public float3 AverageContactPointPosition;
     public float EstimatedImpulse;
-    public PhysicsEventState State;
+    public PhysicsCollisionEventState State;
     public bool isStale;
 }
 

@@ -70,13 +70,13 @@ public class CollisionEventSystem : SystemBase
 
                         if (collisionEvent.isStale)
                         {
-                            if (collisionEvent.State == PhysicsEventState.Exit)
+                            if (collisionEvent.State == PhysicsCollisionEventState.Exit)
                             {
                                 collisionEventsBuffer.RemoveAt(j);
                             }
                             else
                             {
-                                collisionEvent.State = PhysicsEventState.Exit;
+                                collisionEvent.State = PhysicsCollisionEventState.Exit;
                                 collisionEventsBuffer[j] = collisionEvent;
                             }
                         }
@@ -140,7 +140,7 @@ public class CollisionEventSystem : SystemBase
                     collisionEvent.HasCollisionDetails = hasDetails;
                     collisionEvent.AverageContactPointPosition = collisionEventDetails.AverageContactPointPosition;
                     collisionEvent.EstimatedImpulse = collisionEventDetails.EstimatedImpulse;
-                    collisionEvent.State = PhysicsEventState.Stay;
+                    collisionEvent.State = PhysicsCollisionEventState.Stay;
                     collisionEvent.isStale = false;
                     collisionEventBuffer[i] = collisionEvent;
 
@@ -158,7 +158,7 @@ public class CollisionEventSystem : SystemBase
                     HasCollisionDetails = hasDetails,
                     AverageContactPointPosition = collisionEventDetails.AverageContactPointPosition,
                     EstimatedImpulse = collisionEventDetails.EstimatedImpulse,
-                    State = PhysicsEventState.Enter,
+                    State = PhysicsCollisionEventState.Enter,
                     isStale = false,
                 });
             }
