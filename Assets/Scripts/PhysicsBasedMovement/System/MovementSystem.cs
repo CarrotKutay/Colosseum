@@ -49,57 +49,22 @@ public class MovementSystem : SystemBase
             filter.SetBits(1, false, 31);
             filter.SetBits(0, true);
 
-            var dynamicBodies = world.DynamicBodies.ToArray();
-            if (searchForRigidBodyIn(dynamicBodies, filter, out RigidBody rigidBody))
+            RaycastInput input = new RaycastInput()
             {
-                var allBodies = world.Bodies.ToArray();
-                if (aabbOverlapsWith(allBodies, rigidBody))
+                Start = playerPosition,
+                End = playerPosition + rayDirection,
+                Filter = new CollisionFilter()
                 {
-                    UnityEngine.Debug.Log("colliding");
-                    filter.SetBits(1, true, 31);
-                    filter.SetBits(0, false);
-
-                    RaycastInput input = new RaycastInput()
-                    {
-                        Start = playerPosition,
-                        End = playerPosition + rayDirection,
-                        Filter = new CollisionFilter()
-                        {
-                            BelongsTo = ~0u,
-                            CollidesWith = filter.GetBits(0, 32), // all 1s, so all layers, exept layer 0 = player layer
-                            GroupIndex = 0
-                        }
-                    };
-
-                    RaycastHit hit;
-                    world.CastRay(input, out hit);
-                    results[0] = hit;
+                    BelongsTo = ~0u,
+                    CollidesWith = filter.GetBits(0, 32), // all 1s, so all layers, exept layer 0 = player layer
+                    GroupIndex = 0
                 }
-            }
+            };
 
-        }
+            RaycastHit hit;
+            world.CastRay(input, out hit);
+            results[0] = hit;
 
-        private bool searchForRigidBodyIn(RigidBody[] bodies, BitField32 filter, out RigidBody rigidBody)
-        {
-            rigidBody = RigidBody.Zero;
-
-            foreach (var body in bodies)
-            {
-                if (body.CustomTags.Equals((byte)filter.Value)) { rigidBody = body; break; }
-            }
-
-            return !rigidBody.Equals(RigidBody.Zero);
-        }
-
-        private bool aabbOverlapsWith(RigidBody[] bodies, RigidBody item)
-        {
-            bool overlap = false;
-            foreach (var body in bodies)
-            {
-                if (item.Equals(body) || overlap == true) break;
-            }
-
-            return overlap;
         }
     }
 
@@ -146,23 +111,31 @@ public class MovementSystem : SystemBase
         Dependency = JobHandle.CombineDependencies(Dependency, movementHandle); */
         //endSimulationEntityCommandBufferSystem.AddJobHandleForProducer(movementHandle);
 
+        var getCollisionBuffer = GetBufferFromEntity<BufferCollisionEventElement>(true);
+
         var handle = Entities.WithName("Move_Player")
             .WithAll<PlayerPhysicsTag>()
             .WithNone<Prefab>()
             .ForEach(
                 (int entityInQueryIndex,
                 ref PhysicsVelocity physicsVelocity,
+                in Entity entity,
                 in PhysicsMass mass,
                 in MovementDirectionInputComponent movementInput,
                 in InputHoldComponent holdDurationInput,
                 in LocalToWorld localToWorld,
                 in MovementSpeedComponent baseMovementSpeed) =>
                 {
-                    float yDirectionForce = raycastResult[0].Entity.Equals(Entity.Null) ? // * check for collision feedback from ray cast
-                        0 : // * if no entity found -> 'free fall' no yDirectionForce needed
-                        math.normalizesafe(math.cross(raycastResult[0].SurfaceNormal, raycastResult[0].Position)).y;
+                    var bufferLength = getCollisionBuffer.Exists(entity) ? getCollisionBuffer[entity].Length : 0;
+                    var isStill = movementInput.NewValue.Equals(float2.zero);
 
-                    // determining movement direction in regards to y - direction : up- or downhill
+                    float yDirectionForce = bufferLength > 0 && !isStill ? // * check for current collision count and movement on entity
+                                                                           // * if collisions and movement are happening, possible y force can be applied
+                                                                           // * if no collisions or movement are found -> 'free fall' no yDirectionForce needed
+                        math.normalizesafe(math.cross(raycastResult[0].SurfaceNormal, raycastResult[0].Position)).y :
+                        0;
+
+                    // * determining movement direction in regards to y - direction : up- or downhill
                     var slopeFactor = movementInput.NewValue.y >= 0 ? 1f : -1f;
 
                     // * movement 
@@ -171,16 +144,18 @@ public class MovementSystem : SystemBase
 
                     if (holdDurationInput.Value.Equals(float3.zero) && moveOrder.Equals(float3.zero))
                     {
-                        physicsVelocity.Linear *= new float3(.7f, 1f, .7f); // * for faster stopp when no movement input is given
+                        // * for faster stopp when no movement input is given
+                        // * no restriction on y-directional force is given, as gravitational forces should be applied at 100%
+                        physicsVelocity.Linear *= new float3(.7f, 1f, .7f);
                     }
                     else
                     {
-                        //physicsVelocity.Linear += moveOrder * holdDurationInput.Value;
                         ComponentExtensions.ApplyLinearImpulse(ref physicsVelocity, mass, moveOrder * baseMovementSpeed.Value);
                         physicsVelocity.Linear = math.clamp(physicsVelocity.Linear, -maxVelocity, maxVelocity);
                     }
                 }
         )
+        .WithReadOnly(getCollisionBuffer)
         .WithDeallocateOnJobCompletion(raycastResult)
         .Schedule(Dependency);
 
