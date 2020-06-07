@@ -46,8 +46,8 @@ public class MovementSystem : SystemBase
             var rayDirection = math.normalizesafe(math.cross(playerRight, playerForward));
 
             BitField32 filter = new BitField32();
-            filter.SetBits(1, false, 31);
-            filter.SetBits(0, true);
+            filter.SetBits(1, true, 31);
+            filter.SetBits(0, false);
 
             RaycastInput input = new RaycastInput()
             {
@@ -140,7 +140,7 @@ public class MovementSystem : SystemBase
 
                     // * movement 
                     var moveOrder = math.normalizesafe(new float3(movementInput.NewValue.x, yDirectionForce * slopeFactor, movementInput.NewValue.y));
-                    UnityEngine.Debug.DrawRay(raycastResult[0].Position, moveOrder, UnityEngine.Color.green);
+                    UnityEngine.Debug.DrawRay(localToWorld.Position, moveOrder, UnityEngine.Color.green);
 
                     if (holdDurationInput.Value.Equals(float3.zero) && moveOrder.Equals(float3.zero))
                     {

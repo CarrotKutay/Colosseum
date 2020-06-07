@@ -22,7 +22,8 @@ public class PlayerInputTurnSystem : SystemBase
                 ref LocalToWorld LocalToWorld,
                 in PhysicsMass Mass,
                 in LookDirectionInputComponent LookDirectionInput,
-                in Rotation RotationData) =>
+                in Rotation RotationData,
+                in Translation translation) =>
                 {
                     // * Turn velocity
                     var angularVelocityStrength = 15f;
@@ -33,7 +34,6 @@ public class PlayerInputTurnSystem : SystemBase
                     UnityEngine.Debug.DrawRay(LocalToWorld.Position, LocalToWorld.Forward, UnityEngine.Color.red);
                     UnityEngine.Debug.DrawRay(LocalToWorld.Position, lookInput, UnityEngine.Color.blue);
                     var playerForward = math.normalizesafe(LocalToWorld.Forward);
-                    //var debugPlayerPosition = getPlayerPosition[PlayerPhysics].Value;
 
                     var radiansLookInput = math.atan2(lookInput.x, lookInput.z);
                     var radiansPlayerForward = math.atan2(playerForward.x, playerForward.z);
@@ -68,11 +68,11 @@ public class PlayerInputTurnSystem : SystemBase
                         math.pow(math.abs(inputToPlayerDifference) / math.PI, .5f) * angularVelocityStrength * -1;
 
                     // * Changing Angular Velocity to new value
-                    ComponentExtensions.SetAngularVelocity(ref Veclocity, Mass, RotationData, new float3(0, inputToPlayerDifference, 0));
-                    //Debug.DrawRay(debugPlayerPosition, playerForward, Color.red, .2f);
+                    var currentAngularVelocity = ComponentExtensions.GetAngularVelocity(Veclocity, Mass, RotationData);
+                    ComponentExtensions.SetAngularVelocity(ref Veclocity, Mass, RotationData,
+                        new float3(currentAngularVelocity.x, inputToPlayerDifference, currentAngularVelocity.z));
                 }
             )
-            //.WithReadOnly(getPlayerPosition)
             .Schedule();
     }
 }
