@@ -167,7 +167,7 @@ public class InputSystem : SystemBase
         var ReadMovementComponent = GetComponentDataFromEntity<MovementDirectionInputComponent>();
         var Player = PlayerPhysics;
 
-        Job.WithName("ReadMovementinput")
+        Job.WithName("ReadMovementInput")
             .WithCode(() =>
             {
                 var movementInput = ReadMovementComponent[Player];
@@ -277,5 +277,7 @@ public class InputSystem : SystemBase
                 }
         ).Schedule(Dependency);
         Dependency = JobHandle.CombineDependencies(Dependency, handle);
+
+        CompleteDependency();
     }
 }

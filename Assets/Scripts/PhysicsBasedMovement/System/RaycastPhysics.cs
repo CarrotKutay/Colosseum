@@ -4,6 +4,8 @@ using Unity.Jobs;
 using Unity.Mathematics;
 using Unity.Physics;
 
+// ! for now this system is strictly used as reference instead as of a working system in itself
+
 [DisableAutoCreation]
 public class RaycastPhysics : SystemBase
 {

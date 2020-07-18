@@ -99,13 +99,13 @@ public class CollisionEventSystem : SystemBase
             bool AHasDetails = false;
             bool BHasDetails = false;
 
-            if (CollisionEventsReceiverPropertiesFromEntity.Exists(collisionEvent.Entities.EntityA))
+            if (CollisionEventsReceiverPropertiesFromEntity.Exists(collisionEvent.EntityA))
             {
-                AHasDetails = CollisionEventsReceiverPropertiesFromEntity[collisionEvent.Entities.EntityA].UsesCollisionDetails;
+                AHasDetails = CollisionEventsReceiverPropertiesFromEntity[collisionEvent.EntityA].UsesCollisionDetails;
             }
-            if (CollisionEventsReceiverPropertiesFromEntity.Exists(collisionEvent.Entities.EntityB))
+            if (CollisionEventsReceiverPropertiesFromEntity.Exists(collisionEvent.EntityB))
             {
-                BHasDetails = CollisionEventsReceiverPropertiesFromEntity[collisionEvent.Entities.EntityB].UsesCollisionDetails;
+                BHasDetails = CollisionEventsReceiverPropertiesFromEntity[collisionEvent.EntityB].UsesCollisionDetails;
             }
 
             if (AHasDetails || BHasDetails)
@@ -113,13 +113,13 @@ public class CollisionEventSystem : SystemBase
                 collisionEventDetails = collisionEvent.CalculateDetails(ref PhysicsWorld);
             }
 
-            if (CollisionEventBufferFromEntity.Exists(collisionEvent.Entities.EntityA))
+            if (CollisionEventBufferFromEntity.Exists(collisionEvent.EntityA))
             {
-                ProcessForEntity(collisionEvent.Entities.EntityA, collisionEvent.Entities.EntityB, collisionEvent.Normal, AHasDetails, collisionEventDetails);
+                ProcessForEntity(collisionEvent.EntityA, collisionEvent.EntityB, collisionEvent.Normal, AHasDetails, collisionEventDetails);
             }
-            if (CollisionEventBufferFromEntity.Exists(collisionEvent.Entities.EntityB))
+            if (CollisionEventBufferFromEntity.Exists(collisionEvent.EntityB))
             {
-                ProcessForEntity(collisionEvent.Entities.EntityB, collisionEvent.Entities.EntityA, collisionEvent.Normal, BHasDetails, collisionEventDetails);
+                ProcessForEntity(collisionEvent.EntityB, collisionEvent.EntityA, collisionEvent.Normal, BHasDetails, collisionEventDetails);
             }
         }
 
