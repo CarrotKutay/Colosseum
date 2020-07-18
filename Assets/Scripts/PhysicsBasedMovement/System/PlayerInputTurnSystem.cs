@@ -26,23 +26,6 @@ public class PlayerInputTurnSystem : SystemBase
 
     protected override void OnUpdate()
     {
-        /* var collisionWorld = physicsWorldSystem.PhysicsWorld.CollisionWorld;
-
-        var raycastResult = new NativeArray<RaycastHit>(1, Allocator.TempJob);
-        var getLocalToWorld = GetComponentDataFromEntity<LocalToWorld>(true);
-        var getPosition = GetComponentDataFromEntity<Translation>(true);
-
-        var raycastJob = new RaycastJob()
-        {
-            getPlayerLocalToWorld = getLocalToWorld,
-            getPlayerPosition = getPosition,
-            Entity = Player,
-            world = collisionWorld,
-            results = raycastResult,
-        };
-
-        var raycastHandle = raycastJob.Schedule(Dependency);
-        Dependency = JobHandle.CombineDependencies(raycastHandle, Dependency); */
         var getLookDirectionInput = GetComponentDataFromEntity<LookDirectionInputComponent>(true);
 
         var handle = Entities.WithName("TurnPlayerTowardsInput")
@@ -119,8 +102,6 @@ public class PlayerInputTurnSystem : SystemBase
                     #endregion
                 }
             )
-            //.WithReadOnly(getLookDirectionInput)
-            //.WithDeallocateOnJobCompletion(raycastResult)
             .Schedule(Dependency);
 
         Dependency = JobHandle.CombineDependencies(Dependency, handle);

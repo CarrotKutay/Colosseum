@@ -50,7 +50,6 @@ public class MovementSystem : SystemBase
         };
 
         var raycastHandle = raycastJob.Schedule(Dependency);
-        //raycastHandle.Complete();
         Dependency = JobHandle.CombineDependencies(raycastHandle, Dependency);
 
         var getCollisionBuffer = GetBufferFromEntity<BufferCollisionEventElement>(true);
@@ -113,26 +112,6 @@ public class MovementSystem : SystemBase
         Dependency = JobHandle.CombineDependencies(Dependency, handle);
     }
 
-    /*      Dependency = JobHandle.CombineDependencies(raycastHandle, Dependency);
-                endSimulationEntityCommandBufferSystem.AddJobHandleForProducer(raycastHandle); */
-
-    /* var movementJob = new MovePlayerJob
-    {
-        GetInputHoldComponent = GetComponentDataFromEntity<InputHoldComponent>(true),
-        GetMovementDirectionInput = GetComponentDataFromEntity<MovementDirectionInputComponent>(true),
-        GetMass = GetComponentDataFromEntity<PhysicsMass>(true),
-        GetLocalToWorld = getLocalToWorld,
-        GetPhysicsVelocity = GetComponentDataFromEntity<PhysicsVelocity>(),
-        maxVelocity = maxVelocity,
-        Player = PlayerPhysics,
-        raycastHit = raycastResult[0],
-    };
-    raycastResult.Dispose();
-
-    var movementHandle = movementJob.Schedule(Dependency);
-    Dependency = JobHandle.CombineDependencies(Dependency, movementHandle); */
-    //endSimulationEntityCommandBufferSystem.AddJobHandleForProducer(movementHandle);
-
     public struct MovePlayerJob : IJob
     {
         [ReadOnly] public ComponentDataFromEntity<PhysicsMass> GetMass;
@@ -160,7 +139,7 @@ public class MovementSystem : SystemBase
             UnityEngine.Debug.DrawRay(raycastResult[0].Position, newForward * 2, UnityEngine.Color.blue);
             UnityEngine.Debug.DrawRay(raycastResult[0].Position, localToWorld.Forward * 2, UnityEngine.Color.magenta); */
 
-            // determining movement direction in regards to y - direction : up- or downhill
+            // * determining movement direction in regards to y - direction : up- or downhill
             var slopeFactor = movementInput.NewValue.y >= 0 ? 1f : -1f;
 
             // * movement 
@@ -173,7 +152,6 @@ public class MovementSystem : SystemBase
             }
             else
             {
-                //physicsVelocity.Linear += moveOrder * holdDurationInput.Value;
                 ComponentExtensions.ApplyLinearImpulse(ref physicsVelocity, mass, moveOrder * 3);
                 physicsVelocity.Linear = math.clamp(physicsVelocity.Linear, -maxVelocity, maxVelocity);
             }
