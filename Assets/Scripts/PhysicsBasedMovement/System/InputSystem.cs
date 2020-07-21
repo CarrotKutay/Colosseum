@@ -5,7 +5,7 @@ using UnityEngine;
 using Unity.Mathematics;
 using Unity.Jobs;
 using Unity.Transforms;
-[UpdateBefore(typeof(PlayerInputTurnSystem))]
+[UpdateBefore(typeof(TransformStateSystem))]
 public class InputSystem : SystemBase
 {
     private PlayerAction PlayerInput;
@@ -30,6 +30,7 @@ public class InputSystem : SystemBase
         activateDodgeEvents();
         activatingMovementEvents();
         activateLookEvents();
+        activateJumpEvent();
     }
 
     protected override void OnDestroy()
@@ -37,6 +38,7 @@ public class InputSystem : SystemBase
         deactivateDodgeEvents();
         deactivatingMovementEvents();
         deactivateLookEvents();
+        deactivateJumpEvent();
     }
 
     #region Activation Behaviour
@@ -95,6 +97,17 @@ public class InputSystem : SystemBase
 
     }
 
+    private void activateJumpEvent()
+    {
+        // jump input
+        PlayerInput.Player.Jump.performed += _ => readJumpInput();
+    }
+
+    private void deactivateJumpEvent()
+    {
+        PlayerInput.Player.Jump.performed -= _ => readJumpInput();
+    }
+
     private void activateLookEvents()
     {
         // look input
@@ -134,7 +147,6 @@ public class InputSystem : SystemBase
             _ => readMovementInput(PlayerInput.Player.MoveCompositeAsValue.ReadValue<Vector2>());
         PlayerInput.Player.MoveLeftReleaseAsButton.performed -=
             _ => readMovementInput(PlayerInput.Player.MoveCompositeAsValue.ReadValue<Vector2>());
-
     }
 
     #endregion
@@ -161,20 +173,22 @@ public class InputSystem : SystemBase
         handle.Complete(); */
 
         // * version 2
-        var ecb_concurrent = endSimulationEntityCommandBufferSystem
-            .CreateCommandBuffer()
-            .ToConcurrent();
-        var ReadMovementComponent = GetComponentDataFromEntity<MovementDirectionInputComponent>();
-        var Player = PlayerPhysics;
+        /*  var ecb_concurrent = endSimulationEntityCommandBufferSystem
+             .CreateCommandBuffer()
+             .ToConcurrent();
+         var ReadMovementComponent = GetComponentDataFromEntity<MovementDirectionInputComponent>();
+         var Player = PlayerPhysics;
 
-        Job.WithName("ReadMovementInput")
-            .WithCode(() =>
-            {
-                var movementInput = ReadMovementComponent[Player];
-                movementInput.NewValue = MovementDirection;
-                ecb_concurrent.SetComponent<MovementDirectionInputComponent>(0, Player, movementInput);
-            }
-        ).Schedule();
+         var readMovementJobHandle = Job.WithName("ReadMovementInput")
+             .WithCode(() =>
+             {
+                 var movementInput = ReadMovementComponent[Player];
+                 movementInput.NewValue = MovementDirection;
+                 ecb_concurrent.SetComponent<MovementDirectionInputComponent>(0, Player, movementInput);
+             }
+         ).Schedule(Dependency);
+
+         Dependency = JobHandle.CombineDependencies(Dependency, readMovementJobHandle); */
 
         // * version 3
         /* Entities.WithName("ReadMovementInput")
@@ -186,6 +200,11 @@ public class InputSystem : SystemBase
                     movementInput.NewValue = MovementDirection;
                 }
             ).Schedule(); */
+
+        // * version 4
+        var movementDirectionInputComponent = GetComponent<MovementDirectionInputComponent>(PlayerPhysics);
+        movementDirectionInputComponent.NewValue = MovementDirection;
+        SetComponent<MovementDirectionInputComponent>(PlayerPhysics, movementDirectionInputComponent);
     }
 
     public struct ReadMovementInputJob : IJob
@@ -204,10 +223,21 @@ public class InputSystem : SystemBase
 
     #endregion read movement input
 
+    private void readJumpInput()
+    {
+        if (HasComponent<MovementJumpComponent>(PlayerPhysics))
+        {
+            var jumpInputComponent = GetComponent<MovementJumpComponent>(PlayerPhysics);
+            jumpInputComponent.JumpTrigger = true;
+            SetComponent<MovementJumpComponent>(PlayerPhysics, jumpInputComponent);
+        }
+    }
+
     private void readDodgeInput()
     {
 
     }
+
     #region read look input
     private void readLookInput(float2 Direction)
     {

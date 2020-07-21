@@ -100,6 +100,14 @@
                     "expectedControlType": "Button",
                     "processors": "",
                     "interactions": "MultiTap"
+                },
+                {
+                    "name": "Jump",
+                    "type": "Button",
+                    "id": "eaa7ee50-6dd8-438a-afe1-f88f08e1c2f4",
+                    "expectedControlType": "Button",
+                    "processors": "",
+                    "interactions": "Press"
                 }
             ],
             "bindings": [
@@ -419,6 +427,17 @@
                     "processors": "",
                     "groups": "Keyboard&Mouse",
                     "action": "DodgeForward - PressAsButton",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "78ffbd43-d201-4fcf-b1d5-5b0b23571df7",
+                    "path": "keyboard/Space",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "Keyboard&Mouse",
+                    "action": "Jump",
                     "isComposite": false,
                     "isPartOfComposite": false
                 }
