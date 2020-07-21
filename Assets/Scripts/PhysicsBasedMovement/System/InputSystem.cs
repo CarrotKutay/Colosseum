@@ -12,15 +12,11 @@ public class InputSystem : SystemBase
     private EntityManager Manager;
     private Entity PlayerPhysics;
     private float3 LookDirection;
-    private EndSimulationEntityCommandBufferSystem endSimulationEntityCommandBufferSystem;
+    private float2 currentPointerDirection;
+    private float2 currentMovementDirectionInput;
 
     protected override void OnCreate()
     {
-        endSimulationEntityCommandBufferSystem = World
-                .DefaultGameObjectInjectionWorld
-                .GetOrCreateSystem<EndSimulationEntityCommandBufferSystem>();
-
-
         PlayerInput = new PlayerAction();
 
         Manager = World
@@ -156,69 +152,14 @@ public class InputSystem : SystemBase
     #region read movement input
     private void readMovementInput(float2 MovementDirection)
     {
-        // * version 1
-        /* var ecb_concurrent = endSimulationEntityCommandBufferSystem
-            .CreateCommandBuffer()
-            .ToConcurrent();
-        var ReadMovementComponent = GetComponentDataFromEntity<MovementDirectionInputComponent>();
-
-        var readMovementInputJob = new ReadMovementInputJob
-        {
-            EntityCommandBuffer = ecb_concurrent,
-            GetMovementInput = ReadMovementComponent,
-            newMovementInput = MovementDirection,
-            Player = PlayerPhysics,
-        };
-        var handle = readMovementInputJob.Schedule(Dependency);
-        handle.Complete(); */
-
-        // * version 2
-        /*  var ecb_concurrent = endSimulationEntityCommandBufferSystem
-             .CreateCommandBuffer()
-             .ToConcurrent();
-         var ReadMovementComponent = GetComponentDataFromEntity<MovementDirectionInputComponent>();
-         var Player = PlayerPhysics;
-
-         var readMovementJobHandle = Job.WithName("ReadMovementInput")
-             .WithCode(() =>
-             {
-                 var movementInput = ReadMovementComponent[Player];
-                 movementInput.NewValue = MovementDirection;
-                 ecb_concurrent.SetComponent<MovementDirectionInputComponent>(0, Player, movementInput);
-             }
-         ).Schedule(Dependency);
-
-         Dependency = JobHandle.CombineDependencies(Dependency, readMovementJobHandle); */
-
-        // * version 3
-        /* Entities.WithName("ReadMovementInput")
-            .WithAll<PlayerPhysicsTag>()
-            .WithNone<Prefab>()
-            .ForEach(
-                (ref MovementDirectionInputComponent movementInput) =>
-                {
-                    movementInput.NewValue = MovementDirection;
-                }
-            ).Schedule(); */
-
-        // * version 4
-        var movementDirectionInputComponent = GetComponent<MovementDirectionInputComponent>(PlayerPhysics);
-        movementDirectionInputComponent.NewValue = MovementDirection;
-        SetComponent<MovementDirectionInputComponent>(PlayerPhysics, movementDirectionInputComponent);
+        currentMovementDirectionInput = MovementDirection;
     }
 
-    public struct ReadMovementInputJob : IJob
+    private void updatePlayerMovementinput()
     {
-        public float2 newMovementInput;
-        public Entity Player;
-        public ComponentDataFromEntity<MovementDirectionInputComponent> GetMovementInput;
-        public EntityCommandBuffer.Concurrent EntityCommandBuffer;
-        public void Execute()
-        {
-            var movementInput = GetMovementInput[Player];
-            movementInput.NewValue = newMovementInput;
-            EntityCommandBuffer.SetComponent<MovementDirectionInputComponent>(0, Player, movementInput);
-        }
+        var movementDirectionInputComponent = GetComponent<MovementDirectionInputComponent>(PlayerPhysics);
+        movementDirectionInputComponent.NewValue = currentMovementDirectionInput;
+        SetComponent<MovementDirectionInputComponent>(PlayerPhysics, movementDirectionInputComponent);
     }
 
     #endregion read movement input
@@ -241,24 +182,24 @@ public class InputSystem : SystemBase
     #region read look input
     private void readLookInput(float2 Direction)
     {
-        var playerPosition = GetComponentDataFromEntity<Translation>(true)[PlayerPhysics].Value;
-        var playerScreenPosition = new float3(UnityEngine.Camera.main.WorldToScreenPoint(playerPosition));
-        LookDirection = new float3(Direction.x - playerScreenPosition.x, 0, Direction.y - playerScreenPosition.y);
+        currentPointerDirection = Direction;
     }
 
-    public struct ReadLookInputJob : IJob
+    private void getNewLookDirection()
     {
-        public float3 newLookInput;
-        public Entity Player;
-        public ComponentDataFromEntity<LookDirectionInputComponent> GetLookInput;
-        public EntityCommandBuffer.Concurrent EntityCommandBuffer;
-        public void Execute()
-        {
-            var lookInput = GetLookInput[Player];
-            lookInput.Value = newLookInput;
-            EntityCommandBuffer.SetComponent<LookDirectionInputComponent>(0, Player, lookInput);
-        }
+        var playerPosition = GetComponentDataFromEntity<Translation>(true)[PlayerPhysics].Value;
+        var playerScreenPosition = new float3(UnityEngine.Camera.main.WorldToScreenPoint(playerPosition));
+        LookDirection = new float3(currentPointerDirection.x - playerScreenPosition.x, 0, currentPointerDirection.y - playerScreenPosition.y);
     }
+
+    private void updatePlayerLookDirection()
+    {
+        var lookInput = GetComponent<LookDirectionInputComponent>(PlayerPhysics);
+        lookInput.Value = LookDirection;
+        SetComponent<LookDirectionInputComponent>(PlayerPhysics, lookInput);
+    }
+
+
     #endregion lookInput
 
     #endregion
@@ -268,21 +209,13 @@ public class InputSystem : SystemBase
     {
         var maxDurationValue = new float3(.8f, 0, .8f);
         var DeltaTime = Time.DeltaTime;
-        var ecb_concurrent = endSimulationEntityCommandBufferSystem
-            .CreateCommandBuffer()
-            .ToConcurrent();
 
-        // * scheduling job to update the inputLook direction
-        var readLookInputJob = new ReadLookInputJob
-        {
-            newLookInput = LookDirection,
-            Player = PlayerPhysics,
-            EntityCommandBuffer = ecb_concurrent,
-            GetLookInput = GetComponentDataFromEntity<LookDirectionInputComponent>(),
-        };
+        // ? could test if it will sharpen performance to run following three tasks 
+        // ? inside seperate job  
+        getNewLookDirection();
+        updatePlayerLookDirection();
+        updatePlayerMovementinput();
 
-        var lookHandle = readLookInputJob.Schedule(Dependency);
-        Dependency = JobHandle.CombineDependencies(Dependency, lookHandle);
 
         // * scheduling job to update the inputHold duration on movement related input
         var handle = Entities.WithName("GetInputHoldDuration")
@@ -311,3 +244,51 @@ public class InputSystem : SystemBase
         CompleteDependency();
     }
 }
+
+
+// read movement options
+
+// * version 1
+/* var ecb_concurrent = endSimulationEntityCommandBufferSystem
+    .CreateCommandBuffer()
+    .ToConcurrent();
+var ReadMovementComponent = GetComponentDataFromEntity<MovementDirectionInputComponent>();
+
+var readMovementInputJob = new ReadMovementInputJob
+{
+    EntityCommandBuffer = ecb_concurrent,
+    GetMovementInput = ReadMovementComponent,
+    newMovementInput = MovementDirection,
+    Player = PlayerPhysics,
+};
+var handle = readMovementInputJob.Schedule(Dependency);
+handle.Complete(); */
+
+// * version 2
+/*  var ecb_concurrent = endSimulationEntityCommandBufferSystem
+     .CreateCommandBuffer()
+     .ToConcurrent();
+ var ReadMovementComponent = GetComponentDataFromEntity<MovementDirectionInputComponent>();
+ var Player = PlayerPhysics;
+
+ var readMovementJobHandle = Job.WithName("ReadMovementInput")
+     .WithCode(() =>
+     {
+         var movementInput = ReadMovementComponent[Player];
+         movementInput.NewValue = MovementDirection;
+         ecb_concurrent.SetComponent<MovementDirectionInputComponent>(0, Player, movementInput);
+     }
+ ).Schedule(Dependency);
+
+ Dependency = JobHandle.CombineDependencies(Dependency, readMovementJobHandle); */
+
+// * version 3
+/* Entities.WithName("ReadMovementInput")
+    .WithAll<PlayerPhysicsTag>()
+    .WithNone<Prefab>()
+    .ForEach(
+        (ref MovementDirectionInputComponent movementInput) =>
+        {
+            movementInput.NewValue = MovementDirection;
+        }
+    ).Schedule(); */
