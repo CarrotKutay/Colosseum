@@ -10,29 +10,46 @@ using Unity.Physics.Extensions;
 public class PlayerInputTurnSystem : SystemBase
 {
     private Entity Player;
+    private Unity.Physics.Systems.BuildPhysicsWorld physicsWorldSystem;
+
+    protected override void OnCreate()
+    {
+        physicsWorldSystem = World
+            .DefaultGameObjectInjectionWorld
+            .GetExistingSystem<Unity.Physics.Systems.BuildPhysicsWorld>();
+    }
+
+    protected override void OnStartRunning()
+    {
+        Player = GetSingletonEntity<PlayerPhysicsTag>();
+    }
 
     protected override void OnUpdate()
     {
+        var getLookDirectionInput = GetComponentDataFromEntity<LookDirectionInputComponent>(true);
 
-        Entities.WithName("TurnPlayerTowardsInput")
+        var handle = Entities.WithName("TurnPlayerTowardsInput")
             .WithAll<PlayerPhysicsTag>()
             .WithNone<Prefab>()
             .ForEach(
                 (ref PhysicsVelocity Veclocity,
                 ref LocalToWorld LocalToWorld,
                 in PhysicsMass Mass,
-                in LookDirectionInputComponent LookDirectionInput,
                 in Rotation RotationData,
-                in Translation translation) =>
+                in Translation translation,
+                in LookDirectionInputComponent LookDirectionInput,
+                in Entity entity) =>
                 {
+                    #region // * turning on y - axis according to player input
+
                     // * Turn velocity
                     var angularVelocityStrength = 15f;
                     // * normalized look input direction
                     // * we do not need the forward vector, but the vector from player to TurnInput 
                     var lookInput = math.normalizesafe(LookDirectionInput.Value);
                     // * normalized forward vector of player
-                    UnityEngine.Debug.DrawRay(LocalToWorld.Position, LocalToWorld.Forward, UnityEngine.Color.red);
-                    UnityEngine.Debug.DrawRay(LocalToWorld.Position, lookInput, UnityEngine.Color.blue);
+                    /*  UnityEngine.Debug.DrawRay(LocalToWorld.Position, LocalToWorld.Forward, UnityEngine.Color.red);
+                     UnityEngine.Debug.DrawRay(LocalToWorld.Position, lookInput, UnityEngine.Color.blue); */
                     var playerForward = math.normalizesafe(LocalToWorld.Forward);
 
                     var radiansLookInput = math.atan2(lookInput.x, lookInput.z);
@@ -68,11 +85,25 @@ public class PlayerInputTurnSystem : SystemBase
                         math.pow(math.abs(inputToPlayerDifference) / math.PI, .5f) * angularVelocityStrength * -1;
 
                     // * Changing Angular Velocity to new value
-                    var currentAngularVelocity = ComponentExtensions.GetAngularVelocity(Veclocity, Mass, RotationData);
-                    ComponentExtensions.SetAngularVelocity(ref Veclocity, Mass, RotationData,
-                        new float3(currentAngularVelocity.x, inputToPlayerDifference, currentAngularVelocity.z));
+                    var currentAngularVelocity = ComponentExtensions.GetAngularVelocityWorldSpace(Veclocity, Mass, RotationData);
+
+                    float3 angularImpulse;
+                    ComponentExtensions.GetImpulseFromForce(
+                        in Mass,
+                        new float3(currentAngularVelocity.x, inputToPlayerDifference, currentAngularVelocity.z),
+                        Unity.Physics.Extensions.ForceMode.VelocityChange, 1f,
+                        out angularImpulse,
+                        out PhysicsMass impulseMass);
+
+                    ComponentExtensions.SetAngularVelocityWorldSpace(ref Veclocity, Mass, in RotationData,
+                        in angularImpulse);
+
+
+                    #endregion
                 }
             )
-            .Schedule();
+            .Schedule(Dependency);
+
+        Dependency = JobHandle.CombineDependencies(Dependency, handle);
     }
 }

@@ -5,6 +5,7 @@ using Unity.Jobs;
 using Unity.Physics;
 using Unity.Physics.Extensions;
 using Unity.Transforms;
+[UpdateAfter(typeof(InputSystem))]
 public class MovementSystem : SystemBase
 {
     public EndSimulationEntityCommandBufferSystem endSimulationEntityCommandBufferSystem;
@@ -27,50 +28,9 @@ public class MovementSystem : SystemBase
         PlayerPhysics = GetSingletonEntity<PlayerPhysicsTag>();
     }
 
-    public struct RaycastJob : IJob
-    {
-        [ReadOnly] public CollisionWorld world;
-        public NativeArray<RaycastHit> results;
-        public Entity Player;
-        [ReadOnly] public ComponentDataFromEntity<LocalToWorld> getPlayerLocalToWorld;
-        [ReadOnly] public ComponentDataFromEntity<Translation> getPlayerPosition;
-
-        public void Execute()
-        {
-            // get player data
-            var LocalToWorld = getPlayerLocalToWorld[Player];
-            var playerForward = LocalToWorld.Forward;
-            var playerRight = LocalToWorld.Right;
-            var playerPosition = getPlayerPosition[Player].Value;
-
-            var rayDirection = math.normalizesafe(math.cross(playerRight, playerForward));
-
-            BitField32 filter = new BitField32();
-            filter.SetBits(1, true, 31);
-            filter.SetBits(0, false);
-
-            RaycastInput input = new RaycastInput()
-            {
-                Start = playerPosition,
-                End = playerPosition + rayDirection,
-                Filter = new CollisionFilter()
-                {
-                    BelongsTo = ~0u,
-                    CollidesWith = filter.GetBits(0, 32), // all 1s, so all layers, exept layer 0 = player layer
-                    GroupIndex = 0
-                }
-            };
-
-            RaycastHit hit;
-            world.CastRay(input, out hit);
-            results[0] = hit;
-
-        }
-    }
-
     protected override void OnUpdate()
     {
-        float3 maxVelocity = new float3(9.81f, 9.81f, 9.81f); // incorporating terminal velocity (no free fall)
+        float maxMoveVelocity = 9.81f; // incorporating terminal velocity (no free fall)
 
         var collisionWorld = physicsWorldSystem.PhysicsWorld.CollisionWorld;
 
@@ -84,32 +44,13 @@ public class MovementSystem : SystemBase
         {
             getPlayerLocalToWorld = getLocalToWorld,
             getPlayerPosition = getPosition,
-            Player = Player,
+            Entity = Player,
             world = collisionWorld,
             results = raycastResult,
         };
 
         var raycastHandle = raycastJob.Schedule(Dependency);
-        raycastHandle.Complete();
-        /*         Dependency = JobHandle.CombineDependencies(raycastHandle, Dependency);
-                endSimulationEntityCommandBufferSystem.AddJobHandleForProducer(raycastHandle); */
-
-        /* var movementJob = new MovePlayerJob
-        {
-            GetInputHoldComponent = GetComponentDataFromEntity<InputHoldComponent>(true),
-            GetMovementDirectionInput = GetComponentDataFromEntity<MovementDirectionInputComponent>(true),
-            GetMass = GetComponentDataFromEntity<PhysicsMass>(true),
-            GetLocalToWorld = getLocalToWorld,
-            GetPhysicsVelocity = GetComponentDataFromEntity<PhysicsVelocity>(),
-            maxVelocity = maxVelocity,
-            Player = PlayerPhysics,
-            raycastHit = raycastResult[0],
-        };
-        raycastResult.Dispose();
-
-        var movementHandle = movementJob.Schedule(Dependency);
-        Dependency = JobHandle.CombineDependencies(Dependency, movementHandle); */
-        //endSimulationEntityCommandBufferSystem.AddJobHandleForProducer(movementHandle);
+        Dependency = JobHandle.CombineDependencies(raycastHandle, Dependency);
 
         var getCollisionBuffer = GetBufferFromEntity<BufferCollisionEventElement>(true);
 
@@ -126,32 +67,41 @@ public class MovementSystem : SystemBase
                 in LocalToWorld localToWorld,
                 in MovementSpeedComponent baseMovementSpeed) =>
                 {
-                    var bufferLength = getCollisionBuffer.Exists(entity) ? getCollisionBuffer[entity].Length : 0;
+                    var buffer = getCollisionBuffer.Exists(entity) ? getCollisionBuffer[entity] : new DynamicBuffer<BufferCollisionEventElement>();
+                    var bufferLength = buffer.Length;
                     var isStill = movementInput.NewValue.Equals(float2.zero);
 
-                    float yDirectionForce = bufferLength > 0 && !isStill ? // * check for current collision count and movement on entity
+                    float3 directionForce = bufferLength > 0 && !isStill ? // * check for current collision count and movement on entity
                                                                            // * if collisions and movement are happening, possible y force can be applied
                                                                            // * if no collisions or movement are found -> 'free fall' no yDirectionForce needed
-                        math.normalizesafe(math.cross(raycastResult[0].SurfaceNormal, raycastResult[0].Position)).y :
-                        0;
+                        math.normalizesafe(math.cross(raycastResult[0].SurfaceNormal, raycastResult[0].Position)) :
+                        float3.zero;
 
                     // * determining movement direction in regards to y - direction : up- or downhill
-                    var slopeFactor = movementInput.NewValue.y >= 0 ? 1f : -1f;
+                    var slopeMovement = (localToWorld.Forward.y > 0 && movementInput.NewValue.y < 0)
+                                    || (localToWorld.Forward.y < 0 && movementInput.NewValue.y > 0) ?
+                         -directionForce.y : directionForce.y;
 
                     // * movement 
-                    var moveOrder = math.normalizesafe(new float3(movementInput.NewValue.x, yDirectionForce * slopeFactor, movementInput.NewValue.y));
-                    UnityEngine.Debug.DrawRay(localToWorld.Position, moveOrder, UnityEngine.Color.green);
+                    var moveOrder = math.normalizesafe(new float3(movementInput.NewValue.x, slopeMovement, movementInput.NewValue.y));
+
+                    // * debug raycast
+                    /* UnityEngine.Debug.DrawRay(localToWorld.Position, moveOrder, UnityEngine.Color.green);
+                    UnityEngine.Debug.DrawRay(localToWorld.Position, directionForce, UnityEngine.Color.red);
+                    UnityEngine.Debug.DrawRay(localToWorld.Position, localToWorld.Forward, UnityEngine.Color.blue); */
 
                     if (holdDurationInput.Value.Equals(float3.zero) && moveOrder.Equals(float3.zero))
                     {
-                        // * for faster stopp when no movement input is given
+                        // * for faster stop when no movement input is given
                         // * no restriction on y-directional force is given, as gravitational forces should be applied at 100%
-                        physicsVelocity.Linear *= new float3(.7f, 1f, .7f);
+                        // ? might be possible to forgo any kind of hardfix on linear velocity, due to use of specific
+                        // ? physics material whith own values handling friction
+                        physicsVelocity.Linear *= bufferLength > 0 ? new float3(.7f, .7f, .7f) : new float3(1, 1, 1);
                     }
                     else
                     {
                         ComponentExtensions.ApplyLinearImpulse(ref physicsVelocity, mass, moveOrder * baseMovementSpeed.Value);
-                        physicsVelocity.Linear = math.clamp(physicsVelocity.Linear, -maxVelocity, maxVelocity);
+                        physicsVelocity.Linear.y = math.clamp(physicsVelocity.Linear.y, -maxMoveVelocity, maxMoveVelocity);
                     }
                 }
         )
@@ -189,7 +139,7 @@ public class MovementSystem : SystemBase
             UnityEngine.Debug.DrawRay(raycastResult[0].Position, newForward * 2, UnityEngine.Color.blue);
             UnityEngine.Debug.DrawRay(raycastResult[0].Position, localToWorld.Forward * 2, UnityEngine.Color.magenta); */
 
-            // determining movement direction in regards to y - direction : up- or downhill
+            // * determining movement direction in regards to y - direction : up- or downhill
             var slopeFactor = movementInput.NewValue.y >= 0 ? 1f : -1f;
 
             // * movement 
@@ -202,7 +152,6 @@ public class MovementSystem : SystemBase
             }
             else
             {
-                //physicsVelocity.Linear += moveOrder * holdDurationInput.Value;
                 ComponentExtensions.ApplyLinearImpulse(ref physicsVelocity, mass, moveOrder * 3);
                 physicsVelocity.Linear = math.clamp(physicsVelocity.Linear, -maxVelocity, maxVelocity);
             }
