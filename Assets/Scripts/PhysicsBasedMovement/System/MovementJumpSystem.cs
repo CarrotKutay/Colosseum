@@ -62,7 +62,7 @@ public class MovementJumpSystem : SystemBase
                             in translation,
                             in rotation,
                             explosiveJumpForce,
-                            (translation.Value - up),
+                            (explosiveForcePosition - up),
                             1f,
                             1f,
                             up,
