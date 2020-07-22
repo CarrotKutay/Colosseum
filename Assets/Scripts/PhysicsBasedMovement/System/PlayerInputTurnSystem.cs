@@ -6,7 +6,7 @@ using Unity.Transforms;
 using Unity.Physics;
 using Unity.Physics.Extensions;
 
-[UpdateBefore(typeof(MovementSystem))]
+[UpdateAfter(typeof(MovementSystem))]
 public class PlayerInputTurnSystem : SystemBase
 {
     private Entity Player;
@@ -27,6 +27,7 @@ public class PlayerInputTurnSystem : SystemBase
     protected override void OnUpdate()
     {
         var getLookDirectionInput = GetComponentDataFromEntity<LookDirectionInputComponent>(true);
+        //var playerCameraForwardVector = UnityEngine.Camera.main.gameObject.transform.forward;
 
         var handle = Entities.WithName("TurnPlayerTowardsInput")
             .WithAll<PlayerPhysicsTag>()
@@ -48,6 +49,9 @@ public class PlayerInputTurnSystem : SystemBase
                     // * we do not need the forward vector, but the vector from player to TurnInput 
                     var lookInput = math.normalizesafe(LookDirectionInput.Value);
                     // * normalized forward vector of player
+                    /*
+                    // also we will name the 'player-forward-vector' as the 
+                    // forward vector of the palyer camera
                     /*  UnityEngine.Debug.DrawRay(LocalToWorld.Position, LocalToWorld.Forward, UnityEngine.Color.red);
                      UnityEngine.Debug.DrawRay(LocalToWorld.Position, lookInput, UnityEngine.Color.blue); */
                     var playerForward = math.normalizesafe(LocalToWorld.Forward);

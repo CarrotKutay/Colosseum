@@ -399,6 +399,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 3a8c10198cd24024381a347b927c3107, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  JumpTrigger: 0
   SecondJump: 1
   FirstJump: 1
 --- !u!1 &4064267118410567304
