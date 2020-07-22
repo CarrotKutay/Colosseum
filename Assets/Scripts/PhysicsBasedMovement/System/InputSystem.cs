@@ -211,11 +211,21 @@ public class InputSystem : SystemBase
         var DeltaTime = Time.DeltaTime;
 
         // ? could test if it will sharpen performance to run following three tasks 
-        // ? inside seperate job  
+        // ? inside seperate job
         getNewLookDirection();
         updatePlayerLookDirection();
         updatePlayerMovementinput();
 
+        /* try to determine body center compared to position to make 
+            a automatic readjustment possible when object is in air
+        var mass = GetComponent<PhysicsMass>(PlayerPhysics);
+        var translation = GetComponent<Translation>(PlayerPhysics);
+        var rotation = GetComponent<Rotation>(PlayerPhysics);
+        var localToWorld = GetComponent<LocalToWorld>(PlayerPhysics);
+        var centerOfMass = Unity.Physics.Extensions.ComponentExtensions.GetCenterOfMassWorldSpace(ref mass, translation, rotation);
+        
+        Debug.DrawLine(localToWorld.Position, localToWorld.Forward, Color.blue);
+        Debug.DrawLine(centerOfMass, localToWorld.Forward, Color.red); */
 
         // * scheduling job to update the inputHold duration on movement related input
         var handle = Entities.WithName("GetInputHoldDuration")
