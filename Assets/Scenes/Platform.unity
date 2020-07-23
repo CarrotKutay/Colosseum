@@ -1107,10 +1107,14 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ee2e308d6045bf54f9e4776ca18066ae, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  offset:
+  heightOffset:
     x: 0
-    y: 1.2
+    y: 1.5
     z: 0
+  orbitMultiplier:
+    x: 4
+    y: 2
+    z: 4
 --- !u!1 &1995220715
 GameObject:
   m_ObjectHideFlags: 0

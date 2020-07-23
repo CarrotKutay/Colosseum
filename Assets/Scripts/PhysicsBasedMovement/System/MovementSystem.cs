@@ -53,19 +53,22 @@ public class MovementSystem : SystemBase
         Dependency = JobHandle.CombineDependencies(raycastHandle, Dependency);
 
         var getCollisionBuffer = GetBufferFromEntity<BufferCollisionEventElement>(true);
+        var getLookDirectionInput = GetComponentDataFromEntity<LookDirectionInputComponent>(true);
 
         var handle = Entities.WithName("Move_Player")
             .WithAll<PlayerPhysicsTag>()
             .WithNone<Prefab>()
             .ForEach(
-                (int entityInQueryIndex,
-                ref PhysicsVelocity physicsVelocity,
-                in Entity entity,
-                in PhysicsMass mass,
-                in MovementDirectionInputComponent movementInput,
-                in InputHoldComponent holdDurationInput,
-                in LocalToWorld localToWorld,
-                in MovementSpeedComponent baseMovementSpeed) =>
+                (
+                    int entityInQueryIndex,
+                    ref PhysicsVelocity physicsVelocity,
+                    in Entity entity,
+                    in PhysicsMass mass,
+                    in MovementDirectionInputComponent movementInput,
+                    in InputHoldComponent holdDurationInput,
+                    in LocalToWorld localToWorld,
+                    in MovementSpeedComponent baseMovementSpeed
+                ) =>
                 {
                     var buffer = getCollisionBuffer.Exists(entity) ? getCollisionBuffer[entity] : new DynamicBuffer<BufferCollisionEventElement>();
                     var bufferLength = buffer.Length;
@@ -83,7 +86,19 @@ public class MovementSystem : SystemBase
                          -directionForce.y : directionForce.y;
 
                     // * movement 
+                    // * movement should always be in according to the look-at directon of the player-entity
+                    // * therefore, the look-at direction is needed
+                    // * binarizing said direction and multipling it with the move order will express 
+                    // * the move order in relatioin to the look-at direction of the player-entity
+                    var lookDirectionInput = getLookDirectionInput[entity].Value;
                     var moveOrder = math.normalizesafe(new float3(movementInput.NewValue.x, slopeMovement, movementInput.NewValue.y));
+                    moveOrder = math.rotate(localToWorld.Rotation, moveOrder);
+                    /* var binarizedlookAt = new float3(
+                        math.abs(lookDirectionInput.x) / lookDirectionInput.x,
+                        1,
+                        math.abs(lookDirectionInput.z) / lookDirectionInput.z
+                    ); */
+                    //moveOrder *= math.normalizesafe(localToWorld.Forward);
 
                     // * debug raycast
                     /* UnityEngine.Debug.DrawRay(localToWorld.Position, moveOrder, UnityEngine.Color.green);
@@ -105,6 +120,7 @@ public class MovementSystem : SystemBase
                     }
                 }
         )
+        .WithReadOnly(getLookDirectionInput)
         .WithReadOnly(getCollisionBuffer)
         .WithDeallocateOnJobCompletion(raycastResult)
         .Schedule(Dependency);

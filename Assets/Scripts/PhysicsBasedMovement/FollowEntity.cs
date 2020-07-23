@@ -2,6 +2,8 @@
 using UnityEngine;
 using Unity.Transforms;
 using Unity.Mathematics;
+using Unity.Jobs;
+using Unity.Collections;
 
 public class FollowEntity : MonoBehaviour
 {
@@ -24,10 +26,13 @@ public class FollowEntity : MonoBehaviour
         entityToFollow = endSimulationEntityCommandBufferSystem.GetSingletonEntity<PlayerPhysicsTag>();
         if (entityToFollow == Entity.Null) { Debug.Log("entity is null"); return; }
 
-        var entityLookDirection = manager.GetComponentData<LookDirectionInputComponent>(entityToFollow);
-        var entityTranslation = manager.GetComponentData<Translation>(entityToFollow);
-        Debug.DrawLine(entityTranslation.Value, entityLookDirection.Value, Color.red);
-        transform.position = entityTranslation.Value - (math.normalizesafe(entityLookDirection.Value) * orbitMultiplier) + heightOffset;
-        transform.LookAt(entityLookDirection.Value);
+        var entityLocalToWorld = manager.GetComponentData<LocalToWorld>(entityToFollow);
+
+        var fwd = math.normalizesafe(entityLocalToWorld.Forward);
+        var pos = entityLocalToWorld.Position;
+
+        transform.position = pos - (fwd * orbitMultiplier) + heightOffset;
+        transform.LookAt(pos + fwd);
+
     }
 }

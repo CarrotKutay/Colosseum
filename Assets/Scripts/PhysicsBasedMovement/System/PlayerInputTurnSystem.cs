@@ -51,9 +51,10 @@ public class PlayerInputTurnSystem : SystemBase
                     // * normalized forward vector of player
                     /*
                     // also we will name the 'player-forward-vector' as the 
-                    // forward vector of the palyer camera
-                    /*  UnityEngine.Debug.DrawRay(LocalToWorld.Position, LocalToWorld.Forward, UnityEngine.Color.red);
-                     UnityEngine.Debug.DrawRay(LocalToWorld.Position, lookInput, UnityEngine.Color.blue); */
+                    // forward vector of the palyer camera 
+                    */
+                    /* UnityEngine.Debug.DrawRay(LocalToWorld.Position, LocalToWorld.Forward, UnityEngine.Color.red);
+                    UnityEngine.Debug.DrawRay(LocalToWorld.Position, lookInput, UnityEngine.Color.blue); */
                     var playerForward = math.normalizesafe(LocalToWorld.Forward);
 
                     var radiansLookInput = math.atan2(lookInput.x, lookInput.z);
@@ -91,13 +92,13 @@ public class PlayerInputTurnSystem : SystemBase
                     // * Changing Angular Velocity to new value
                     var currentAngularVelocity = ComponentExtensions.GetAngularVelocityWorldSpace(Veclocity, Mass, RotationData);
 
-                    float3 angularImpulse;
-                    ComponentExtensions.GetImpulseFromForce(
+                    float3 angularImpulse = new float3(currentAngularVelocity.x, inputToPlayerDifference, currentAngularVelocity.z);
+                    /* ComponentExtensions.GetImpulseFromForce(
                         in Mass,
                         new float3(currentAngularVelocity.x, inputToPlayerDifference, currentAngularVelocity.z),
                         Unity.Physics.Extensions.ForceMode.VelocityChange, 1f,
                         out angularImpulse,
-                        out PhysicsMass impulseMass);
+                        out PhysicsMass impulseMass); */
 
                     ComponentExtensions.SetAngularVelocityWorldSpace(ref Veclocity, Mass, in RotationData,
                         in angularImpulse);
