@@ -2,8 +2,9 @@
 
 ### Player Camera
 The palyer camera is adjusted to the movement of the player itself it will always be on a fixed distance to the player and presents a 3rd person view of the character controlled. The distance is adjustable by an orbit multiplier and an offset. The orbit multiplier deals with the rotation of the camera around the player in yz-direction, while the offset mainly controls the y-height of the camera. This offset is not scaled by the player position as the camera should always be on a fixed upper (above the shoulder) perspective to follow the player behaviour.
+Rotation of the camera itself will be adjusted according to player input received.
 
-### Making the camera work via an entity related system
+### Making the camera work via ECS
 The camera following the palyer will use an entity (cameraEntity) to copy all movements from as cameras as of yet are not integrated into the ECS workflow. Any movement and rotation to the camera will therefore be applied to the cameraEntity first and then be copied by the actual camera. Movement and rotation can in this way be controlled by a separate camera entity system.
 The values for the orbit multiplier and offset are adjusted via the camera tag component. Furthermroe, the movemnt of the camera will be lerped in a non-linear fassion (simple square function), to allow for more smooth camera movement, which will be adjustable. Rotation of the camera will function accoring to the input given by the player. The input will therefore be converted to screen space. Rotation can be limited by thresholds and regulated in speed.
 All following adjustments of the camera can be regulated in the [camera tag component](Assets\Scripts\PhysicsBasedMovement\Components\CameraComponent.cs):
