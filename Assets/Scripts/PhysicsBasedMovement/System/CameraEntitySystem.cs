@@ -26,8 +26,8 @@ public class CameraEntitySystem : SystemBase
 
         playerCameraObject = UnityEngine.Camera.main.gameObject;
         var cameraTransform = playerCameraObject.transform;
-        var cameraEntity = GetSingletonEntity<CameraTag>(); // ? not very flexible solution -> what if we want multiple cameras per player or scene?
-        var camera = GetComponent<CameraTag>(cameraEntity);
+        var cameraEntity = GetSingletonEntity<CameraComponent>(); // ? not very flexible solution -> what if we want multiple cameras per player or scene?
+        var camera = GetComponent<CameraComponent>(cameraEntity);
         var cameraForward = math.normalizesafe(cameraTransform.forward);
         var pos = GetComponent<LocalToWorld>(playerEntity).Position;
         cameraPosition = pos - (cameraForward * camera.orbitMultiplier) + camera.offset;
@@ -40,8 +40,8 @@ public class CameraEntitySystem : SystemBase
 
         var lookInput = GetComponent<LookDirectionInputComponent>(playerEntity).ScreenValue;
         var pos = GetComponent<LocalToWorld>(playerEntity).Position;
-        var cameraEntity = GetSingletonEntity<CameraTag>(); // ? not very flexible solution -> what if we want multiple cameras per player or scene?
-        var cameraComponent = GetComponent<CameraTag>(cameraEntity);
+        var cameraEntity = GetSingletonEntity<CameraComponent>(); // ? not very flexible solution -> what if we want multiple cameras per player or scene?
+        var cameraComponent = GetComponent<CameraComponent>(cameraEntity);
 
         // * old camera position
         var new_cameraPosition = pos - (cameraTransform.forward * cameraComponent.orbitMultiplier) + cameraComponent.offset;
@@ -94,7 +94,7 @@ public class CameraEntitySystem : SystemBase
         // * apply force
         velocity.Angular = new float3(verticalForce, horizontalForce, 0);
 
-        SetComponent<CameraTag>(cameraEntity, cameraComponent);
+        SetComponent<CameraComponent>(cameraEntity, cameraComponent);
         SetComponent<PhysicsVelocity>(cameraEntity, velocity);
 
         endSimulationEntityCommandBufferSystem.AddJobHandleForProducer(Dependency);

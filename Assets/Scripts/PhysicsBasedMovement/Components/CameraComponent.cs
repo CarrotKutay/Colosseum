@@ -1,7 +1,7 @@
 using Unity.Entities;
 using Unity.Mathematics;
 [GenerateAuthoringComponent]
-public struct CameraTag : IComponentData
+public struct CameraComponent : IComponentData
 {
     [UnityEngine.Header("Position")]
     public float3 offset; // recommended (0, 2, 0)

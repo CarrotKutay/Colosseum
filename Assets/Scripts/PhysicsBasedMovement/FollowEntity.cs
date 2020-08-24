@@ -22,12 +22,12 @@ public class FollowEntity : MonoBehaviour
 
     private void LateUpdate()
     {
-        entityToFollow = endSimulationEntityCommandBufferSystem.GetSingletonEntity<CameraTag>();
+        entityToFollow = endSimulationEntityCommandBufferSystem.GetSingletonEntity<CameraComponent>();
         if (entityToFollow == Entity.Null) { Debug.Log("entity to follow is null (not given)"); return; }
         else
         {
             var LocalToWorld = manager.GetComponentData<LocalToWorld>(entityToFollow);
-            var camera = manager.GetComponentData<CameraTag>(entityToFollow);
+            var camera = manager.GetComponentData<CameraComponent>(entityToFollow);
             if (math.isfinite(LocalToWorld.Position.x) && math.isfinite(LocalToWorld.Position.y) && math.isfinite(LocalToWorld.Position.z))
             {
                 transform.position = LocalToWorld.Position;
