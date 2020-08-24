@@ -2,6 +2,7 @@
 using UnityEngine;
 using Unity.Transforms;
 using Unity.Mathematics;
+using Unity.Physics;
 using Unity.Jobs;
 using Unity.Collections;
 
@@ -10,8 +11,6 @@ public class FollowEntity : MonoBehaviour
     public Entity entityToFollow;
     private EntityManager manager;
     private EndSimulationEntityCommandBufferSystem endSimulationEntityCommandBufferSystem;
-    [SerializeField] private float3 heightOffset = new float3(0, 0, 0);
-    [SerializeField] private float3 orbitMultiplier = new float3(4f, 2f, 4f);
 
     private void Awake()
     {
@@ -23,16 +22,20 @@ public class FollowEntity : MonoBehaviour
 
     private void LateUpdate()
     {
-        entityToFollow = endSimulationEntityCommandBufferSystem.GetSingletonEntity<PlayerPhysicsTag>();
-        if (entityToFollow == Entity.Null) { Debug.Log("entity is null"); return; }
+        entityToFollow = endSimulationEntityCommandBufferSystem.GetSingletonEntity<CameraTag>();
+        if (entityToFollow == Entity.Null) { Debug.Log("entity to follow is null (not given)"); return; }
+        else
+        {
+            var LocalToWorld = manager.GetComponentData<LocalToWorld>(entityToFollow);
+            var camera = manager.GetComponentData<CameraTag>(entityToFollow);
+            if (math.isfinite(LocalToWorld.Position.x) && math.isfinite(LocalToWorld.Position.y) && math.isfinite(LocalToWorld.Position.z))
+            {
+                transform.position = LocalToWorld.Position;
+                transform.LookAt(LocalToWorld.Position + LocalToWorld.Forward);
+            }
 
-        var entityLocalToWorld = manager.GetComponentData<LocalToWorld>(entityToFollow);
-
-        var fwd = math.normalizesafe(entityLocalToWorld.Forward);
-        var pos = entityLocalToWorld.Position;
-
-        transform.position = pos - (fwd * orbitMultiplier) + heightOffset;
-        transform.LookAt(pos + fwd);
-
+        }
     }
+
+
 }

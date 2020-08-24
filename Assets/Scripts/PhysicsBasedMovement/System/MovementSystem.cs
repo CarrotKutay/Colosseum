@@ -38,12 +38,10 @@ public class MovementSystem : SystemBase
         var Player = PlayerPhysics;
 
         var getLocalToWorld = GetComponentDataFromEntity<LocalToWorld>(true);
-        var getPosition = GetComponentDataFromEntity<Translation>(true);
 
         var raycastJob = new RaycastJob()
         {
             getPlayerLocalToWorld = getLocalToWorld,
-            getPlayerPosition = getPosition,
             Entity = Player,
             world = collisionWorld,
             results = raycastResult,
@@ -70,7 +68,7 @@ public class MovementSystem : SystemBase
                     in MovementSpeedComponent baseMovementSpeed
                 ) =>
                 {
-                    var buffer = getCollisionBuffer.Exists(entity) ? getCollisionBuffer[entity] : new DynamicBuffer<BufferCollisionEventElement>();
+                    var buffer = getCollisionBuffer.HasComponent(entity) ? getCollisionBuffer[entity] : new DynamicBuffer<BufferCollisionEventElement>();
                     var bufferLength = buffer.Length;
                     var isStill = movementInput.NewValue.Equals(float2.zero);
 
@@ -90,15 +88,9 @@ public class MovementSystem : SystemBase
                     // * therefore, the look-at direction is needed
                     // * binarizing said direction and multipling it with the move order will express 
                     // * the move order in relatioin to the look-at direction of the player-entity
-                    var lookDirectionInput = getLookDirectionInput[entity].Value;
+                    var lookDirectionInput = getLookDirectionInput[entity].WorldValue;
                     var moveOrder = math.normalizesafe(new float3(movementInput.NewValue.x, slopeMovement, movementInput.NewValue.y));
                     moveOrder = math.rotate(localToWorld.Rotation, moveOrder);
-                    /* var binarizedlookAt = new float3(
-                        math.abs(lookDirectionInput.x) / lookDirectionInput.x,
-                        1,
-                        math.abs(lookDirectionInput.z) / lookDirectionInput.z
-                    ); */
-                    //moveOrder *= math.normalizesafe(localToWorld.Forward);
 
                     // * debug raycast
                     /* UnityEngine.Debug.DrawRay(localToWorld.Position, moveOrder, UnityEngine.Color.green);
@@ -122,55 +114,10 @@ public class MovementSystem : SystemBase
         )
         .WithReadOnly(getLookDirectionInput)
         .WithReadOnly(getCollisionBuffer)
-        .WithDeallocateOnJobCompletion(raycastResult)
+        .WithDisposeOnCompletion(raycastResult)
         .Schedule(Dependency);
 
         Dependency = JobHandle.CombineDependencies(Dependency, handle);
-    }
-
-    public struct MovePlayerJob : IJob
-    {
-        [ReadOnly] public ComponentDataFromEntity<PhysicsMass> GetMass;
-        [ReadOnly] public ComponentDataFromEntity<MovementDirectionInputComponent> GetMovementDirectionInput;
-        [ReadOnly] public ComponentDataFromEntity<InputHoldComponent> GetInputHoldComponent;
-        [ReadOnly] public ComponentDataFromEntity<LocalToWorld> GetLocalToWorld;
-        [ReadOnly] public RaycastHit raycastHit;
-        [ReadOnly] public float3 maxVelocity;
-        public ComponentDataFromEntity<PhysicsVelocity> GetPhysicsVelocity;
-        public Entity Player;
-        public void Execute()
-        {
-            var movementInput = GetMovementDirectionInput[Player];
-            var holdDurationInput = GetInputHoldComponent[Player];
-            var physicsVelocity = GetPhysicsVelocity[Player];
-            var localToWorld = GetLocalToWorld[Player];
-            var mass = GetMass[Player];
-
-            // * getting raycast results 
-            var groundSurfaceNormal = raycastHit.SurfaceNormal;
-            var yDirection = math.normalizesafe(math.cross(groundSurfaceNormal, raycastHit.Position + new float3(1, 0, 0))).y;
-
-            /* // debug
-            UnityEngine.Debug.DrawRay(raycastResult[0].Position, groundNormal * 2, UnityEngine.Color.red);
-            UnityEngine.Debug.DrawRay(raycastResult[0].Position, newForward * 2, UnityEngine.Color.blue);
-            UnityEngine.Debug.DrawRay(raycastResult[0].Position, localToWorld.Forward * 2, UnityEngine.Color.magenta); */
-
-            // * determining movement direction in regards to y - direction : up- or downhill
-            var slopeFactor = movementInput.NewValue.y >= 0 ? 1f : -1f;
-
-            // * movement 
-            var moveOrder = math.normalizesafe(new float3(movementInput.NewValue.x, yDirection * slopeFactor, movementInput.NewValue.y));
-            UnityEngine.Debug.DrawRay(localToWorld.Position, moveOrder, UnityEngine.Color.green);
-
-            if (holdDurationInput.Value.Equals(float3.zero) && moveOrder.Equals(float3.zero))
-            {
-                physicsVelocity.Linear *= 1f; // * for faster stopp when no movement input is given
-            }
-            else
-            {
-                ComponentExtensions.ApplyLinearImpulse(ref physicsVelocity, mass, moveOrder * 3);
-                physicsVelocity.Linear = math.clamp(physicsVelocity.Linear, -maxVelocity, maxVelocity);
-            }
-        }
+        endSimulationEntityCommandBufferSystem.AddJobHandleForProducer(Dependency);
     }
 }

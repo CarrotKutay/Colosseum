@@ -6,5 +6,6 @@ using Unity.Mathematics;
 [GenerateAuthoringComponent]
 public struct LookDirectionInputComponent : IComponentData
 {
-    public float3 Value;
+    public float3 WorldValue;
+    public float3 ScreenValue;
 }

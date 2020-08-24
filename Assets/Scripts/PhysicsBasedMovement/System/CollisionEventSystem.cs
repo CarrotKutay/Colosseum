@@ -30,7 +30,7 @@ public class CollisionEventSystem : SystemBase
 
     struct CollisionEventsPreProcessJob : IJobChunk
     {
-        public ArchetypeChunkBufferType<BufferCollisionEventElement> CollisionEventBufferType;
+        public BufferTypeHandle<BufferCollisionEventElement> CollisionEventBufferType;
 
         public void Execute(ArchetypeChunk chunk, int chunkIndex, int firstEntityIndex)
         {
@@ -52,7 +52,7 @@ public class CollisionEventSystem : SystemBase
 
     struct CollisionEventsPostProcessJob : IJobChunk
     {
-        public ArchetypeChunkBufferType<BufferCollisionEventElement> CollisionEventBufferType;
+        public BufferTypeHandle<BufferCollisionEventElement> CollisionEventBufferType;
 
         public void Execute(ArchetypeChunk chunk, int chunkIndex, int firstEntityIndex)
         {
@@ -99,11 +99,11 @@ public class CollisionEventSystem : SystemBase
             bool AHasDetails = false;
             bool BHasDetails = false;
 
-            if (CollisionEventsReceiverPropertiesFromEntity.Exists(collisionEvent.EntityA))
+            if (CollisionEventsReceiverPropertiesFromEntity.HasComponent(collisionEvent.EntityA))
             {
                 AHasDetails = CollisionEventsReceiverPropertiesFromEntity[collisionEvent.EntityA].UsesCollisionDetails;
             }
-            if (CollisionEventsReceiverPropertiesFromEntity.Exists(collisionEvent.EntityB))
+            if (CollisionEventsReceiverPropertiesFromEntity.HasComponent(collisionEvent.EntityB))
             {
                 BHasDetails = CollisionEventsReceiverPropertiesFromEntity[collisionEvent.EntityB].UsesCollisionDetails;
             }
@@ -113,11 +113,11 @@ public class CollisionEventSystem : SystemBase
                 collisionEventDetails = collisionEvent.CalculateDetails(ref PhysicsWorld);
             }
 
-            if (CollisionEventBufferFromEntity.Exists(collisionEvent.EntityA))
+            if (CollisionEventBufferFromEntity.HasComponent(collisionEvent.EntityA))
             {
                 ProcessForEntity(collisionEvent.EntityA, collisionEvent.EntityB, collisionEvent.Normal, AHasDetails, collisionEventDetails);
             }
-            if (CollisionEventBufferFromEntity.Exists(collisionEvent.EntityB))
+            if (CollisionEventBufferFromEntity.HasComponent(collisionEvent.EntityB))
             {
                 ProcessForEntity(collisionEvent.EntityB, collisionEvent.EntityA, collisionEvent.Normal, BHasDetails, collisionEventDetails);
             }
@@ -178,7 +178,7 @@ public class CollisionEventSystem : SystemBase
         // * - marking them as stale to be discarded after processing
         var preCollisionJob = new CollisionEventsPreProcessJob
         {
-            CollisionEventBufferType = GetArchetypeChunkBufferType<BufferCollisionEventElement>(),
+            CollisionEventBufferType = GetBufferTypeHandle<BufferCollisionEventElement>(),
         };
         var preCollisionJobHandle = preCollisionJob.ScheduleParallel(EntityQuery, Dependency);
         Dependency = JobHandle.CombineDependencies(Dependency, preCollisionJobHandle);
@@ -197,9 +197,10 @@ public class CollisionEventSystem : SystemBase
         // * - stale marked events will be deleted from their buffers 
         var postCollisionJob = new CollisionEventsPostProcessJob
         {
-            CollisionEventBufferType = GetArchetypeChunkBufferType<BufferCollisionEventElement>(),
+            CollisionEventBufferType = GetBufferTypeHandle<BufferCollisionEventElement>(),
         };
         var postCollisionJobHandle = postCollisionJob.ScheduleParallel(EntityQuery, Dependency);
         Dependency = JobHandle.CombineDependencies(Dependency, postCollisionJobHandle);
+
     }
 }
