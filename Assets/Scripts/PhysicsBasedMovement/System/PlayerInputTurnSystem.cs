@@ -4,9 +4,8 @@ using Unity.Jobs;
 using Unity.Mathematics;
 using Unity.Transforms;
 using Unity.Physics;
-using Unity.Physics.Extensions;
 
-[UpdateBefore(typeof(MovementSystem))]
+[UpdateAfter(typeof(MovementSystem))]
 public class PlayerInputTurnSystem : SystemBase
 {
     private Entity Player;
@@ -45,11 +44,10 @@ public class PlayerInputTurnSystem : SystemBase
                     // * Turn velocity
                     var angularVelocityStrength = 15f;
                     // * normalized look input direction
-                    // * we do not need the forward vector, but the vector from player to TurnInput 
-                    var lookInput = math.normalizesafe(LookDirectionInput.Value);
-                    // * normalized forward vector of player
-                    /*  UnityEngine.Debug.DrawRay(LocalToWorld.Position, LocalToWorld.Forward, UnityEngine.Color.red);
-                     UnityEngine.Debug.DrawRay(LocalToWorld.Position, lookInput, UnityEngine.Color.blue); */
+                    // * as the vector from player to TurnInput 
+                    var lookInput = math.normalizesafe(LookDirectionInput.WorldValue + LocalToWorld.Position);
+                    /* UnityEngine.Debug.DrawRay(LocalToWorld.Position, LocalToWorld.Forward, UnityEngine.Color.red);
+                    UnityEngine.Debug.DrawRay(LocalToWorld.Position, lookInput, UnityEngine.Color.blue); */
                     var playerForward = math.normalizesafe(LocalToWorld.Forward);
 
                     var radiansLookInput = math.atan2(lookInput.x, lookInput.z);
@@ -63,41 +61,24 @@ public class PlayerInputTurnSystem : SystemBase
                     var inputToPlayerDifference = radiansLookInput - radiansPlayerForward;
                     if (math.abs(inputToPlayerDifference) > math.PI)
                     {
-                        if (inputToPlayerDifference < 0)
-                        {
-                            inputToPlayerDifference = (inputToPlayerDifference + math.PI * 2);
-
-                        }
-                        else if (inputToPlayerDifference > 0)
-                        {
-                            inputToPlayerDifference = (math.PI * 2 - inputToPlayerDifference) * -1;
-                        }
+                        inputToPlayerDifference = inputToPlayerDifference < 0 ?
+                            inputToPlayerDifference + math.PI * 2 :
+                            (math.PI * 2 - inputToPlayerDifference) * -1;
                     }
+
                     /* 
-                       * Changing the input strength depending on how big the angle between the forward vector
-                       * of the player and the directional vector of the input is.
-                       * We use a square root function to determine input strength and multiply it by angularVelocityStrength
-                       * to furzher increase velocity for faster movespeed.
-                     */
+                        * Changing the input strength depending on how big the angle between the forward vector
+                        * of the player and the directional vector of the input is.
+                        * We use a square root function to determine input strength and multiply it by angularVelocityStrength
+                        * to furzher increase velocity for faster movespeed.
+                    */
 
                     inputToPlayerDifference = inputToPlayerDifference > 0 ?
                         math.pow(math.abs(inputToPlayerDifference) / math.PI, .5f) * angularVelocityStrength :
                         math.pow(math.abs(inputToPlayerDifference) / math.PI, .5f) * angularVelocityStrength * -1;
 
                     // * Changing Angular Velocity to new value
-                    var currentAngularVelocity = ComponentExtensions.GetAngularVelocityWorldSpace(Veclocity, Mass, RotationData);
-
-                    float3 angularImpulse;
-                    ComponentExtensions.GetImpulseFromForce(
-                        in Mass,
-                        new float3(currentAngularVelocity.x, inputToPlayerDifference, currentAngularVelocity.z),
-                        Unity.Physics.Extensions.ForceMode.VelocityChange, 1f,
-                        out angularImpulse,
-                        out PhysicsMass impulseMass);
-
-                    ComponentExtensions.SetAngularVelocityWorldSpace(ref Veclocity, Mass, in RotationData,
-                        in angularImpulse);
-
+                    Veclocity.Angular.y = inputToPlayerDifference; // reset only y-directional angular force
 
                     #endregion
                 }
@@ -105,5 +86,8 @@ public class PlayerInputTurnSystem : SystemBase
             .Schedule(Dependency);
 
         Dependency = JobHandle.CombineDependencies(Dependency, handle);
+
+        World.GetOrCreateSystem<EndSimulationEntityCommandBufferSystem>()
+            .AddJobHandleForProducer(Dependency);
     }
 }

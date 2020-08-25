@@ -11,9 +11,12 @@ public class InputSystem : SystemBase
     private PlayerAction PlayerInput;
     private EntityManager Manager;
     private Entity PlayerPhysics;
-    private float3 LookDirection;
+    private float3 LookDirectionWorldSpace;
+    private float3 LookDirectionScreenSpace;
     private float2 currentPointerDirection;
     private float2 currentMovementDirectionInput;
+    private float screenHeight;
+    private float screenWidth;
 
     protected override void OnCreate()
     {
@@ -54,6 +57,9 @@ public class InputSystem : SystemBase
                 break;
             }
         }
+
+        screenHeight = Camera.main.scaledPixelHeight / 2;
+        screenWidth = Camera.main.scaledPixelWidth / 2;
     }
 
     protected override void OnStopRunning()
@@ -188,14 +194,27 @@ public class InputSystem : SystemBase
     private void getNewLookDirection()
     {
         var playerPosition = GetComponentDataFromEntity<Translation>(true)[PlayerPhysics].Value;
-        var playerScreenPosition = new float3(UnityEngine.Camera.main.WorldToScreenPoint(playerPosition));
-        LookDirection = new float3(currentPointerDirection.x - playerScreenPosition.x, 0, currentPointerDirection.y - playerScreenPosition.y);
+        var zCoord = Camera.main.farClipPlane;
+        var inputDirection = currentPointerDirection;
+
+        // * screen space look input direction 
+        inputDirection.x = (inputDirection.x - screenWidth) / screenWidth;
+        inputDirection.y = (inputDirection.y - screenHeight) / screenHeight;
+        LookDirectionScreenSpace = new float3(inputDirection.x, inputDirection.y, zCoord);
+
+        // * world space look input direction
+        LookDirectionWorldSpace = new float3(Camera.main.ScreenToWorldPoint(
+            new float3(currentPointerDirection.x, currentPointerDirection.y, zCoord)));
+
+        // TODO: turn on/off debug 
+        Debug.DrawLine(LookDirectionWorldSpace, LookDirectionWorldSpace + new float3(0, 10f, 0), Color.red);
     }
 
     private void updatePlayerLookDirection()
     {
         var lookInput = GetComponent<LookDirectionInputComponent>(PlayerPhysics);
-        lookInput.Value = LookDirection;
+        lookInput.WorldValue = LookDirectionWorldSpace;
+        lookInput.ScreenValue = LookDirectionScreenSpace;
         SetComponent<LookDirectionInputComponent>(PlayerPhysics, lookInput);
     }
 
@@ -216,16 +235,6 @@ public class InputSystem : SystemBase
         updatePlayerLookDirection();
         updatePlayerMovementinput();
 
-        /* try to determine body center compared to position to make 
-            a automatic readjustment possible when object is in air
-        var mass = GetComponent<PhysicsMass>(PlayerPhysics);
-        var translation = GetComponent<Translation>(PlayerPhysics);
-        var rotation = GetComponent<Rotation>(PlayerPhysics);
-        var localToWorld = GetComponent<LocalToWorld>(PlayerPhysics);
-        var centerOfMass = Unity.Physics.Extensions.ComponentExtensions.GetCenterOfMassWorldSpace(ref mass, translation, rotation);
-        
-        Debug.DrawLine(localToWorld.Position, localToWorld.Forward, Color.blue);
-        Debug.DrawLine(centerOfMass, localToWorld.Forward, Color.red); */
 
         // * scheduling job to update the inputHold duration on movement related input
         var handle = Entities.WithName("GetInputHoldDuration")
@@ -251,7 +260,9 @@ public class InputSystem : SystemBase
         ).Schedule(Dependency);
         Dependency = JobHandle.CombineDependencies(Dependency, handle);
 
-        CompleteDependency();
+        //CompleteDependency();
+        World.GetOrCreateSystem<EndSimulationEntityCommandBufferSystem>()
+            .AddJobHandleForProducer(Dependency);
     }
 }
 

@@ -26,9 +26,9 @@ public class GameObjectPrefabConversion : MonoBehaviour, IDeclareReferencedPrefa
             .BlobAssetStore;
 
         PrefabEntity = GameObjectConversionUtility.ConvertGameObjectHierarchy(PrefabGameObject,
-        GameObjectConversionSettings.FromWorld(
-            World.DefaultGameObjectInjectionWorld, blobAssetStore
-        ));
+            GameObjectConversionSettings.FromWorld(
+                World.DefaultGameObjectInjectionWorld, blobAssetStore
+            ));
         entityManager.SetName(PrefabEntity, PrefabGameObject.name);
 
 
