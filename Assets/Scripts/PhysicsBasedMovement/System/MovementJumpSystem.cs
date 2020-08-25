@@ -19,7 +19,7 @@ public class MovementJumpSystem : SystemBase
     protected override void OnUpdate()
     {
         var EntityCommandBuffer = endSimulationEntityCommandBuffer
-            .CreateCommandBuffer().ToConcurrent();
+            .CreateCommandBuffer().AsParallelWriter();
 
         var getMovementSpeed = GetComponentDataFromEntity<MovementSpeedComponent>(true);
         var getTranslation = GetComponentDataFromEntity<Translation>(true);
@@ -78,6 +78,7 @@ public class MovementJumpSystem : SystemBase
                 .Schedule(Dependency);
 
         Dependency = JobHandle.CombineDependencies(Dependency, systemJobHandle);
+        endSimulationEntityCommandBuffer.AddJobHandleForProducer(Dependency);
 
     }
 
@@ -85,7 +86,7 @@ public class MovementJumpSystem : SystemBase
     {
         [DeallocateOnJobCompletion]
         public NativeArray<Entity> Entities;
-        public EntityCommandBuffer.Concurrent EntityCommandBuffer;
+        public EntityCommandBuffer.ParallelWriter EntityCommandBuffer;
         public ComponentDataFromEntity<MovementJumpComponent> getJumpComponent;
         public ComponentDataFromEntity<PhysicsVelocity> getVelocity;
         public ComponentDataFromEntity<PhysicsMass> getMass;

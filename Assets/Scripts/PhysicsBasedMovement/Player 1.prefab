@@ -20,6 +20,7 @@ GameObject:
   - component: {fileID: 991940557537939715}
   - component: {fileID: 632928650630955892}
   - component: {fileID: 6881389388393964495}
+  - component: {fileID: 1452240733853687776}
   m_Layer: 0
   m_Name: Model
   m_TagString: Untagged
@@ -402,6 +403,22 @@ MonoBehaviour:
   JumpTrigger: 0
   SecondJump: 1
   FirstJump: 1
+--- !u!114 &1452240733853687776
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4045977045713138805}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 108045a99238d61489ba742e1cbd427b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  DegreesFromYAxisToXAxis: 0
+  DegreesFromYAxisToZAxis: 0
+  ActiveOnXY: 0
+  ActiveOnZY: 0
 --- !u!1 &4064267118410567304
 GameObject:
   m_ObjectHideFlags: 0

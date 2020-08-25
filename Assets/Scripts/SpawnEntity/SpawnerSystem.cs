@@ -15,7 +15,7 @@ public class SpawnerSystem : SystemBase
 
     protected override void OnUpdate()
     {
-        var ecb = endSimulationEntityCommandBufferSystem.CreateCommandBuffer().ToConcurrent();
+        var ecb = endSimulationEntityCommandBufferSystem.CreateCommandBuffer().AsParallelWriter();
         //var entities = GetEntityQuery(typeof(SpawnComponent)).ToEntityArrayAsync(Allocator.TempJob, out JobHandle getSpawnEntities);
 
         var handle = Entities.WithName("SpawnEntities")

@@ -2,14 +2,15 @@
 using UnityEngine;
 using Unity.Transforms;
 using Unity.Mathematics;
+using Unity.Physics;
+using Unity.Jobs;
+using Unity.Collections;
 
 public class FollowEntity : MonoBehaviour
 {
     public Entity entityToFollow;
     private EntityManager manager;
     private EndSimulationEntityCommandBufferSystem endSimulationEntityCommandBufferSystem;
-    [SerializeField] private float3 heightOffset = new float3(0, 0, 0);
-    [SerializeField] private float3 orbitMultiplier = new float3(4f, 2f, 4f);
 
     private void Awake()
     {
@@ -21,13 +22,20 @@ public class FollowEntity : MonoBehaviour
 
     private void LateUpdate()
     {
-        entityToFollow = endSimulationEntityCommandBufferSystem.GetSingletonEntity<PlayerPhysicsTag>();
-        if (entityToFollow == Entity.Null) { Debug.Log("entity is null"); return; }
+        entityToFollow = endSimulationEntityCommandBufferSystem.GetSingletonEntity<CameraComponent>();
+        if (entityToFollow == Entity.Null) { Debug.Log("entity to follow is null (not given)"); return; }
+        else
+        {
+            var LocalToWorld = manager.GetComponentData<LocalToWorld>(entityToFollow);
+            var camera = manager.GetComponentData<CameraComponent>(entityToFollow);
+            if (math.isfinite(LocalToWorld.Position.x) && math.isfinite(LocalToWorld.Position.y) && math.isfinite(LocalToWorld.Position.z))
+            {
+                transform.position = LocalToWorld.Position;
+                transform.LookAt(LocalToWorld.Position + LocalToWorld.Forward);
+            }
 
-        var entityLookDirection = manager.GetComponentData<LookDirectionInputComponent>(entityToFollow);
-        var entityTranslation = manager.GetComponentData<Translation>(entityToFollow);
-        Debug.DrawLine(entityTranslation.Value, entityLookDirection.Value, Color.red);
-        transform.position = entityTranslation.Value - (math.normalizesafe(entityLookDirection.Value) * orbitMultiplier) + heightOffset;
-        transform.LookAt(entityLookDirection.Value);
+        }
     }
+
+
 }
