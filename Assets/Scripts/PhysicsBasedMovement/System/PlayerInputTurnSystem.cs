@@ -4,35 +4,50 @@ using Unity.Jobs;
 using Unity.Mathematics;
 using Unity.Transforms;
 using Unity.Physics;
-using Unity.Physics.Extensions;
 
-[UpdateBefore(typeof(MovementSystem))]
+[UpdateAfter(typeof(MovementSystem))]
 public class PlayerInputTurnSystem : SystemBase
 {
     private Entity Player;
+    private Unity.Physics.Systems.BuildPhysicsWorld physicsWorldSystem;
+
+    protected override void OnCreate()
+    {
+        physicsWorldSystem = World
+            .DefaultGameObjectInjectionWorld
+            .GetExistingSystem<Unity.Physics.Systems.BuildPhysicsWorld>();
+    }
+
+    protected override void OnStartRunning()
+    {
+        Player = GetSingletonEntity<PlayerPhysicsTag>();
+    }
 
     protected override void OnUpdate()
     {
+        var getLookDirectionInput = GetComponentDataFromEntity<LookDirectionInputComponent>(true);
 
-        Entities.WithName("TurnPlayerTowardsInput")
+        var handle = Entities.WithName("TurnPlayerTowardsInput")
             .WithAll<PlayerPhysicsTag>()
             .WithNone<Prefab>()
             .ForEach(
                 (ref PhysicsVelocity Veclocity,
                 ref LocalToWorld LocalToWorld,
                 in PhysicsMass Mass,
-                in LookDirectionInputComponent LookDirectionInput,
                 in Rotation RotationData,
-                in Translation translation) =>
+                in Translation translation,
+                in LookDirectionInputComponent LookDirectionInput,
+                in Entity entity) =>
                 {
+                    #region // * turning on y - axis according to player input
+
                     // * Turn velocity
                     var angularVelocityStrength = 15f;
                     // * normalized look input direction
-                    // * we do not need the forward vector, but the vector from player to TurnInput 
-                    var lookInput = math.normalizesafe(LookDirectionInput.Value);
-                    // * normalized forward vector of player
-                    UnityEngine.Debug.DrawRay(LocalToWorld.Position, LocalToWorld.Forward, UnityEngine.Color.red);
-                    UnityEngine.Debug.DrawRay(LocalToWorld.Position, lookInput, UnityEngine.Color.blue);
+                    // * as the vector from player to TurnInput 
+                    var lookInput = math.normalizesafe(LookDirectionInput.WorldValue + LocalToWorld.Position);
+                    /* UnityEngine.Debug.DrawRay(LocalToWorld.Position, LocalToWorld.Forward, UnityEngine.Color.red);
+                    UnityEngine.Debug.DrawRay(LocalToWorld.Position, lookInput, UnityEngine.Color.blue); */
                     var playerForward = math.normalizesafe(LocalToWorld.Forward);
 
                     var radiansLookInput = math.atan2(lookInput.x, lookInput.z);
@@ -46,33 +61,33 @@ public class PlayerInputTurnSystem : SystemBase
                     var inputToPlayerDifference = radiansLookInput - radiansPlayerForward;
                     if (math.abs(inputToPlayerDifference) > math.PI)
                     {
-                        if (inputToPlayerDifference < 0)
-                        {
-                            inputToPlayerDifference = (inputToPlayerDifference + math.PI * 2);
-
-                        }
-                        else if (inputToPlayerDifference > 0)
-                        {
-                            inputToPlayerDifference = (math.PI * 2 - inputToPlayerDifference) * -1;
-                        }
+                        inputToPlayerDifference = inputToPlayerDifference < 0 ?
+                            inputToPlayerDifference + math.PI * 2 :
+                            (math.PI * 2 - inputToPlayerDifference) * -1;
                     }
+
                     /* 
-                       * Changing the input strength depending on how big the angle between the forward vector
-                       * of the player and the directional vector of the input is.
-                       * We use a square root function to determine input strength and multiply it by angularVelocityStrength
-                       * to furzher increase velocity for faster movespeed.
-                     */
+                        * Changing the input strength depending on how big the angle between the forward vector
+                        * of the player and the directional vector of the input is.
+                        * We use a square root function to determine input strength and multiply it by angularVelocityStrength
+                        * to furzher increase velocity for faster movespeed.
+                    */
 
                     inputToPlayerDifference = inputToPlayerDifference > 0 ?
                         math.pow(math.abs(inputToPlayerDifference) / math.PI, .5f) * angularVelocityStrength :
                         math.pow(math.abs(inputToPlayerDifference) / math.PI, .5f) * angularVelocityStrength * -1;
 
                     // * Changing Angular Velocity to new value
-                    var currentAngularVelocity = ComponentExtensions.GetAngularVelocity(Veclocity, Mass, RotationData);
-                    ComponentExtensions.SetAngularVelocity(ref Veclocity, Mass, RotationData,
-                        new float3(currentAngularVelocity.x, inputToPlayerDifference, currentAngularVelocity.z));
+                    Veclocity.Angular.y = inputToPlayerDifference; // reset only y-directional angular force
+
+                    #endregion
                 }
             )
-            .Schedule();
+            .Schedule(Dependency);
+
+        Dependency = JobHandle.CombineDependencies(Dependency, handle);
+
+        World.GetOrCreateSystem<EndSimulationEntityCommandBufferSystem>()
+            .AddJobHandleForProducer(Dependency);
     }
 }

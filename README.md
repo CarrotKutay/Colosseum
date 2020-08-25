@@ -5,7 +5,7 @@ Colosseum is a experimental idea to develop a game with focus on competitive gam
 
 ### Short-term goals
 1. More familiarity with the development of projects and games especially
-2. Gathering more familiarity with workflows inside the unity environment
+2. Gathering more familiarity with workflows inside the unity environment especially in view of _gameplay programming_
     - Discovering and learning about new packages available in unity:
       - [New input system package](https://docs.unity3d.com/Packages/com.unity.inputsystem@1.0/manual/index.html)
       - New DOTS in unity including
@@ -27,3 +27,11 @@ Colosseum is a experimental idea to develop a game with focus on competitive gam
     * [x] Changing idea to be more focused on physics: [issue #10](https://github.com/CarrotKutay/Colosseum/issues/10) is it possible to move the player only based on physiscs? This could lead to simplifying many problems when animations are implemented on top of in world movement
 * [x] Deciding to implement entity-component-system workflow into the project
 * [ ] Changing player movemnt to be purely steered by physics command ([helpful orientation](https://www.youtube.com/playlist?list=PLWYGofN_jX5CtphJqxBpn3_HwAyoLjdig))
+
+### Tech-Stack
+As this project is for now mostly an experimental one, the tech stack does not need to be fully completed for now.
+The basis to perform the experiments on is the unity engine. All gameplay programming will be done there. 
+
+For designíng purposes 3rd party software might be usefull and looking into getting mroe familiar with Bleneder or maybe even ZBrush if time and oppportunity allows could be usefull. Apart from this, most of the design will be done in unity directy, also for more easier compatibility.
+
+Backend: If this experiment ever will go into a phase to require a backend serevr + database, I would be very interested to try out the combination of PostgreSQL + Python

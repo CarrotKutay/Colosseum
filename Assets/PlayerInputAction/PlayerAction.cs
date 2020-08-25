@@ -113,6 +113,14 @@ public class @PlayerAction : IInputActionCollection, IDisposable
                     ""expectedControlType"": ""Button"",
                     ""processors"": """",
                     ""interactions"": ""MultiTap""
+                },
+                {
+                    ""name"": ""Jump"",
+                    ""type"": ""Button"",
+                    ""id"": ""eaa7ee50-6dd8-438a-afe1-f88f08e1c2f4"",
+                    ""expectedControlType"": ""Button"",
+                    ""processors"": """",
+                    ""interactions"": ""Press""
                 }
             ],
             ""bindings"": [
@@ -432,6 +440,17 @@ public class @PlayerAction : IInputActionCollection, IDisposable
                     ""processors"": """",
                     ""groups"": ""Keyboard&Mouse"",
                     ""action"": ""DodgeForward - PressAsButton"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""78ffbd43-d201-4fcf-b1d5-5b0b23571df7"",
+                    ""path"": ""keyboard/Space"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": ""Keyboard&Mouse"",
+                    ""action"": ""Jump"",
                     ""isComposite"": false,
                     ""isPartOfComposite"": false
                 }
@@ -1021,6 +1040,7 @@ public class @PlayerAction : IInputActionCollection, IDisposable
         m_Player_MoveRightPressAsButton = m_Player.FindAction("MoveRight - PressAsButton", throwIfNotFound: true);
         m_Player_MoveRightReleaseAsButton = m_Player.FindAction("MoveRight - ReleaseAsButton", throwIfNotFound: true);
         m_Player_DodgeForwardPressAsButton = m_Player.FindAction("DodgeForward - PressAsButton", throwIfNotFound: true);
+        m_Player_Jump = m_Player.FindAction("Jump", throwIfNotFound: true);
         // UI
         m_UI = asset.FindActionMap("UI", throwIfNotFound: true);
         m_UI_Navigate = m_UI.FindAction("Navigate", throwIfNotFound: true);
@@ -1094,6 +1114,7 @@ public class @PlayerAction : IInputActionCollection, IDisposable
     private readonly InputAction m_Player_MoveRightPressAsButton;
     private readonly InputAction m_Player_MoveRightReleaseAsButton;
     private readonly InputAction m_Player_DodgeForwardPressAsButton;
+    private readonly InputAction m_Player_Jump;
     public struct PlayerActions
     {
         private @PlayerAction m_Wrapper;
@@ -1110,6 +1131,7 @@ public class @PlayerAction : IInputActionCollection, IDisposable
         public InputAction @MoveRightPressAsButton => m_Wrapper.m_Player_MoveRightPressAsButton;
         public InputAction @MoveRightReleaseAsButton => m_Wrapper.m_Player_MoveRightReleaseAsButton;
         public InputAction @DodgeForwardPressAsButton => m_Wrapper.m_Player_DodgeForwardPressAsButton;
+        public InputAction @Jump => m_Wrapper.m_Player_Jump;
         public InputActionMap Get() { return m_Wrapper.m_Player; }
         public void Enable() { Get().Enable(); }
         public void Disable() { Get().Disable(); }
@@ -1155,6 +1177,9 @@ public class @PlayerAction : IInputActionCollection, IDisposable
                 @DodgeForwardPressAsButton.started -= m_Wrapper.m_PlayerActionsCallbackInterface.OnDodgeForwardPressAsButton;
                 @DodgeForwardPressAsButton.performed -= m_Wrapper.m_PlayerActionsCallbackInterface.OnDodgeForwardPressAsButton;
                 @DodgeForwardPressAsButton.canceled -= m_Wrapper.m_PlayerActionsCallbackInterface.OnDodgeForwardPressAsButton;
+                @Jump.started -= m_Wrapper.m_PlayerActionsCallbackInterface.OnJump;
+                @Jump.performed -= m_Wrapper.m_PlayerActionsCallbackInterface.OnJump;
+                @Jump.canceled -= m_Wrapper.m_PlayerActionsCallbackInterface.OnJump;
             }
             m_Wrapper.m_PlayerActionsCallbackInterface = instance;
             if (instance != null)
@@ -1195,6 +1220,9 @@ public class @PlayerAction : IInputActionCollection, IDisposable
                 @DodgeForwardPressAsButton.started += instance.OnDodgeForwardPressAsButton;
                 @DodgeForwardPressAsButton.performed += instance.OnDodgeForwardPressAsButton;
                 @DodgeForwardPressAsButton.canceled += instance.OnDodgeForwardPressAsButton;
+                @Jump.started += instance.OnJump;
+                @Jump.performed += instance.OnJump;
+                @Jump.canceled += instance.OnJump;
             }
         }
     }
@@ -1363,6 +1391,7 @@ public class @PlayerAction : IInputActionCollection, IDisposable
         void OnMoveRightPressAsButton(InputAction.CallbackContext context);
         void OnMoveRightReleaseAsButton(InputAction.CallbackContext context);
         void OnDodgeForwardPressAsButton(InputAction.CallbackContext context);
+        void OnJump(InputAction.CallbackContext context);
     }
     public interface IUIActions
     {
