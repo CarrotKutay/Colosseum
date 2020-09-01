@@ -9,7 +9,7 @@ public class Converter : MonoBehaviour, IDeclareReferencedPrefabs, IConvertGameO
     public void Convert(Entity entity, EntityManager dstManager, GameObjectConversionSystem conversionSystem)
     {
         Entity prefabEntity = conversionSystem.GetPrimaryEntity(PrefabGameObject);
-        dstManager.SetName(prefabEntity, "PrefabEntity");
+        //dstManager.SetName(prefabEntity, "PrefabEntity");
         Converter.prefabEntity = prefabEntity;
     }
 
