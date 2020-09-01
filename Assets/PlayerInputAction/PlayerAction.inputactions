@@ -108,6 +108,14 @@
                     "expectedControlType": "Button",
                     "processors": "",
                     "interactions": "Press"
+                },
+                {
+                    "name": "AngularForceTest",
+                    "type": "Button",
+                    "id": "ecb67086-6f72-449f-8af9-082ac0b91b1b",
+                    "expectedControlType": "Button",
+                    "processors": "",
+                    "interactions": "Press"
                 }
             ],
             "bindings": [
@@ -438,6 +446,17 @@
                     "processors": "",
                     "groups": "Keyboard&Mouse",
                     "action": "Jump",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "7178483c-0875-4673-a0d0-448890b0cbfd",
+                    "path": "keyboard/E",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "Keyboard&Mouse",
+                    "action": "AngularForceTest",
                     "isComposite": false,
                     "isPartOfComposite": false
                 }

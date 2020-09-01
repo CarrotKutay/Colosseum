@@ -17,8 +17,9 @@ public class AngularVelocityControlSystem : SystemBase
 {
     private Unity.Physics.Systems.BuildPhysicsWorld physicsWorldSystem;
     private EndSimulationEntityCommandBufferSystem endSimulationEntityCommandBufferSystem;
-    private readonly float ControlThresholdTop = 25f;
-    private readonly float ControlThresholdBottom = 10f;
+    private float ControlThresholdStart = 50f;
+    private float ControlThresholdStop = 10f;
+    private float controlMultiplier = 1f;
     protected override void OnCreate()
     {
         physicsWorldSystem = World
@@ -31,54 +32,16 @@ public class AngularVelocityControlSystem : SystemBase
     protected override void OnUpdate()
     {
         // * localization of thresholds for jobs
-        var angularControlTopThreshold = ControlThresholdTop;
-        var angularControlBottomThreshold = ControlThresholdBottom;
-
-        var angularControlActivationHandle = Entities.WithName("AngularControl_Activation_Deactivation_Update")
-                .WithNone<Prefab>()
-                .ForEach(
-                    (
-                        ref AngularVelocityControlComponent angularControlComponent,
-                        ref PhysicsVelocity velocity,
-                        in PhysicsMass mass,
-                        in Rotation rotation
-                    ) =>
-                    {
-                        angularControlComponent.ActiveOnXY = math.abs(angularControlComponent.DegreesFromYAxisToXAxis) > angularControlTopThreshold ?
-                            true : angularControlComponent.ActiveOnXY;
-                        angularControlComponent.ActiveOnZY = math.abs(angularControlComponent.DegreesFromYAxisToZAxis) > angularControlTopThreshold ?
-                            true : angularControlComponent.ActiveOnZY;
-
-                        var controlledVelocityX = math.abs(angularControlComponent.DegreesFromYAxisToXAxis) > angularControlTopThreshold ?
-                            Angles.regulateVelocityStrength(math.radians(angularControlComponent.DegreesFromYAxisToXAxis))
-                            : velocity.Angular.x;
-                        var controlledVelocityZ = math.abs(angularControlComponent.DegreesFromYAxisToZAxis) > angularControlTopThreshold ?
-                            Angles.regulateVelocityStrength(math.radians(angularControlComponent.DegreesFromYAxisToZAxis))
-                            : velocity.Angular.z;
-
-
-                        if ((math.abs(angularControlComponent.DegreesFromYAxisToXAxis) < angularControlBottomThreshold && angularControlComponent.ActiveOnXY)
-                                    || (math.abs(angularControlComponent.DegreesFromYAxisToZAxis) < angularControlBottomThreshold && angularControlComponent.ActiveOnZY))
-                        {
-                            controlledVelocityX = angularControlComponent.ActiveOnXY ? 0 : velocity.Angular.x;
-                            controlledVelocityZ = angularControlComponent.ActiveOnZY ? 0 : velocity.Angular.z;
-
-                            angularControlComponent.ActiveOnXY = angularControlComponent.ActiveOnXY ? false : angularControlComponent.ActiveOnXY;
-                            angularControlComponent.ActiveOnZY = angularControlComponent.ActiveOnZY ? false : angularControlComponent.ActiveOnZY;
-                        }
-
-                        velocity.Angular.x = controlledVelocityX;
-                        velocity.Angular.z = controlledVelocityZ;
-                    }
-                ).ScheduleParallel(Dependency);
-        Dependency = JobHandle.CombineDependencies(Dependency, angularControlActivationHandle);
-
+        var angularControlTopThreshold = math.radians(ControlThresholdStart);
+        var angularControlBottomThreshold = math.radians(ControlThresholdStop);
+        // * localize multiplier for jobs
+        //var multiplier = controlMultiplier;
 
         // * confirm surface normal on all controllable entities and add force
         // * accordingly to straighten entities back relative to surface normal
         var collisionWorld = physicsWorldSystem.PhysicsWorld.CollisionWorld;
         var entityCommandBuffer = endSimulationEntityCommandBufferSystem.CreateCommandBuffer().AsParallelWriter();
-        var systemJobHandle = Entities.WithName("ControlAngularVelocitySystem")
+        var systemJobHandle = Entities.WithName("AngularControl_Measurement")
             .WithNone<Prefab>()
             .ForEach(
                 (
@@ -109,30 +72,56 @@ public class AngularVelocityControlSystem : SystemBase
                     };
 
                     RaycastHit hit;
-                    collisionWorld.CastRay(input, out hit);
+                    angularControlComponent.hasSurface = collisionWorld.CastRay(input, out hit);
 
                     // * control angular spin relative to surface normal
-                    // * get radians for surface normal and up-vector in between x and y axis
-                    var surfaceNormal = hit.SurfaceNormal;
-                    var radiansSurfaceNormalXY = Angles.getAngleBetweenAxisWithAtan(surfaceNormal.x, surfaceNormal.y);
-                    var radiansEntityUpwardXY = Angles.getAngleBetweenAxisWithAtan(localToWorld.Up.x, localToWorld.Up.y);
-                    var surfaceToEntityDifferenceXY = radiansSurfaceNormalXY - radiansEntityUpwardXY;
+                    // * if no surface can be detected the normal (0, 0, 1)
+                    var surfaceNormal = angularControlComponent.hasSurface ? hit.SurfaceNormal : new float3(0, 1, 0);
 
-                    surfaceToEntityDifferenceXY = Angles.getSmallAngle(surfaceToEntityDifferenceXY);
-                    //surfaceToEntityDifferenceXY = AngularVelocityControlSystem.regulateVelocityStrength(surfaceToEntityDifferenceXY);
+                    var entityUpward = localToWorld.Up;
+
+                    var radiansSurfaceNormalZ = Angles.getAngleBetweenAxisWithAtan(surfaceNormal.x, surfaceNormal.y);
+                    var radiansEntityUpwardZ = Angles.getAngleBetweenAxisWithAtan(entityUpward.x, entityUpward.y);
+                    var surfaceToEntityDifferenceZ = radiansSurfaceNormalZ - radiansEntityUpwardZ;
+
+                    surfaceToEntityDifferenceZ = Angles.getSmallAngle(surfaceToEntityDifferenceZ);
 
                     // * get radians for surface normal and up-vector in between z and y axis
-                    var radiansSurfaceNormalZY = Angles.getAngleBetweenAxisWithAtan(surfaceNormal.z, surfaceNormal.y);
-                    var radiansEntityUpwardZY = Angles.getAngleBetweenAxisWithAtan(localToWorld.Up.z, localToWorld.Up.y);
-                    var surfaceToEntityDifferenceZY = radiansSurfaceNormalZY - radiansEntityUpwardZY;
+                    var radiansSurfaceNormalX = Angles.getAngleBetweenAxisWithAtan(surfaceNormal.z, surfaceNormal.y);
+                    var radiansEntityUpwardX = Angles.getAngleBetweenAxisWithAtan(entityUpward.z, entityUpward.y);
+                    var surfaceToEntityDifferenceX = radiansSurfaceNormalX - radiansEntityUpwardX;
 
-                    surfaceToEntityDifferenceZY = Angles.getSmallAngle(surfaceToEntityDifferenceZY);
-                    //surfaceToEntityDifferenceZY = AngularVelocityControlSystem.regulateVelocityStrength(surfaceToEntityDifferenceZY);
+                    surfaceToEntityDifferenceX = Angles.getSmallAngle(surfaceToEntityDifferenceX);
 
-                    angularControlComponent.DegreesFromYAxisToXAxis = math.degrees(surfaceToEntityDifferenceXY);
-                    angularControlComponent.DegreesFromYAxisToZAxis = math.degrees(surfaceToEntityDifferenceZY);
-                    /* UnityEngine.Debug.Log("xyDegrees: " + angularControlComponent.DegreesFromYAxisToXAxis + ", 
-                                            zyDegrees: " + angularControlComponent.DegreesFromYAxisToZAxis);*/
+                    // * define multiplier depending on measurement difference
+                    var measurementDifference = (surfaceToEntityDifferenceX + surfaceToEntityDifferenceZ) / math.PI;
+                    var addedControlSpeed = math.clamp(1 / (measurementDifference), 1f, 3f);
+                    // * update control force
+                    angularControlComponent.x = math.pow(surfaceToEntityDifferenceX, 2f) + addedControlSpeed;
+                    angularControlComponent.z = math.pow(surfaceToEntityDifferenceZ, 2f) + addedControlSpeed;
+
+                    // * update direction of control
+                    // * update direction only while not resetting
+                    angularControlComponent.directionX = angularControlComponent.resetXAxis ? angularControlComponent.directionX : surfaceToEntityDifferenceX > 0;
+                    angularControlComponent.directionZ = angularControlComponent.resetZAxis ? angularControlComponent.directionZ : surfaceToEntityDifferenceZ > 0;
+
+                    // * set control permission for x and z axis 
+                    angularControlComponent.resetXAxis = angularControlTopThreshold < math.abs(surfaceToEntityDifferenceX) ?
+                        true : angularControlComponent.resetXAxis;
+                    angularControlComponent.resetZAxis = angularControlTopThreshold < math.abs(surfaceToEntityDifferenceZ) ?
+                        true : angularControlComponent.resetZAxis;
+
+                    // * reset permission value once control is sufficient
+                    angularControlComponent.resetXAxis =
+                        angularControlBottomThreshold > math.abs(surfaceToEntityDifferenceX) && angularControlComponent.resetXAxis ?
+                        false : angularControlComponent.resetXAxis;
+                    angularControlComponent.resetZAxis =
+                        angularControlBottomThreshold > math.abs(surfaceToEntityDifferenceZ) && angularControlComponent.resetZAxis ?
+                        false : angularControlComponent.resetZAxis;
+
+                    /*  UnityEngine.Debug.Log("Reset x: " + angularControlComponent.resetXAxis + " (with " + angularControlTopThreshold + " - " + math.abs(surfaceToEntityDifferenceX) + ")" +
+                     "\nReset Z: " + angularControlComponent.resetZAxis + " (with " + angularControlTopThreshold + " - " + math.abs(surfaceToEntityDifferenceZ) + ")"); */
+                    //UnityEngine.Debug.DrawLine(localToWorld.Position, localToWorld.Up + localToWorld.Position, UnityEngine.Color.red);
                 }
             )
             .WithReadOnly(collisionWorld)
