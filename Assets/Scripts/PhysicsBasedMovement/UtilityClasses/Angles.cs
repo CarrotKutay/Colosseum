@@ -39,8 +39,7 @@ public static class Angles
     public static float getAngleBetweeVectorsWithDot(float3 fromAxis, float3 toAxis)
     {
         return math.acos(
-            math.dot(fromAxis, toAxis) /
-            ((math.length(fromAxis) * math.length(toAxis)))
+            math.dot(fromAxis, toAxis) / (math.length(fromAxis) * math.length(toAxis))
         );
     }
 
@@ -64,7 +63,7 @@ public static class Angles
         return angleInRadians;
     }
 
-    public static float regulateVelocityStrength(float angleInRadians, float angularVelocityStrengthRegulation = 3f)
+    public static float regulateVelocityStrength(float angleInRadians, float angularVelocityStrengthRegulation = 1f)
     {
         /* 
             * Changing the velocity change strength depending on how big the angle is.
