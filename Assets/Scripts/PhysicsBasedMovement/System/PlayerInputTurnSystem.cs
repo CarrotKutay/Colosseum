@@ -31,8 +31,8 @@ public class PlayerInputTurnSystem : SystemBase
             .WithAll<PlayerPhysicsTag>()
             .WithNone<Prefab>()
             .ForEach(
-                (ref PhysicsVelocity Veclocity,
-                ref LocalToWorld LocalToWorld,
+                (ref LocalToWorld LocalToWorld,
+                ref AngularVelocityControlComponent angularVelocityControl,
                 in PhysicsMass Mass,
                 in Rotation RotationData,
                 in Translation translation,
@@ -78,7 +78,7 @@ public class PlayerInputTurnSystem : SystemBase
                         math.pow(math.abs(inputToPlayerDifference) / math.PI, .5f) * angularVelocityStrength * -1;
 
                     // * Changing Angular Velocity to new value
-                    Veclocity.Angular.y = inputToPlayerDifference; // reset only y-directional angular force
+                    angularVelocityControl.y = inputToPlayerDifference; // reset only y-directional angular force
 
                     #endregion
                 }

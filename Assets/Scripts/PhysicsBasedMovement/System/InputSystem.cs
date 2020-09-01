@@ -25,26 +25,35 @@ public class InputSystem : SystemBase
         Manager = World
             .DefaultGameObjectInjectionWorld
             .EntityManager;
+    }
 
+    private void activateEvents()
+    {
         activateDodgeEvents();
         activatingMovementEvents();
         activateLookEvents();
         activateJumpEvent();
+
+        // * debug
+        activateAngularForceTest();
     }
 
-    protected override void OnDestroy()
+    private void deactivateEvents()
     {
         deactivateDodgeEvents();
         deactivatingMovementEvents();
         deactivateLookEvents();
         deactivateJumpEvent();
+
+        // * debug
+        deactivateAngularForceTest();
     }
 
     #region Activation Behaviour
     protected override void OnStartRunning()
     {
-        //Debug.Log("width: " + Camera.main.scaledPixelWidth + ", height: " + Camera.main.scaledPixelHeight);
         PlayerInput.Enable();
+        activateEvents();
 
         var Player = GetSingletonEntity<PlayerTag>();
         var buffer = GetBufferFromEntity<LinkedEntityGroup>()[Player].Reinterpret<Entity>();
@@ -64,6 +73,7 @@ public class InputSystem : SystemBase
 
     protected override void OnStopRunning()
     {
+        deactivateEvents();
         PlayerInput.Disable();
     }
 
@@ -151,6 +161,18 @@ public class InputSystem : SystemBase
             _ => readMovementInput(PlayerInput.Player.MoveCompositeAsValue.ReadValue<Vector2>());
     }
 
+    private void activateAngularForceTest()
+    {
+        PlayerInput.Player.AngularForceTest.performed +=
+            _ => readAngularForceTest();
+    }
+
+    private void deactivateAngularForceTest()
+    {
+        PlayerInput.Player.AngularForceTest.performed -=
+            _ => readAngularForceTest();
+    }
+
     #endregion
 
     #region Reading input
@@ -182,7 +204,14 @@ public class InputSystem : SystemBase
 
     private void readDodgeInput()
     {
+        Debug.Log("dodge");
+    }
 
+    private void readAngularForceTest()
+    {
+        var velocity = GetComponent<PhysicsVelocity>(PlayerPhysics);
+        velocity.Angular += new float3(0, 0, 10);
+        SetComponent<PhysicsVelocity>(PlayerPhysics, velocity);
     }
 
     #region read look input
