@@ -19,7 +19,7 @@ public class AngularVelocityControlSystem : SystemBase
     private EndSimulationEntityCommandBufferSystem endSimulationEntityCommandBufferSystem;
     private float ControlThresholdStart = 50f;
     private float ControlThresholdStop = 10f;
-    private float controlMultiplier = 1f;
+    // private float controlMultiplier = 1f;
     protected override void OnCreate()
     {
         physicsWorldSystem = World

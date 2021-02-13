@@ -2,7 +2,6 @@
 using UnityEngine;
 
 [DisallowMultipleComponent]
-[RequiresEntityConversion]
 public class CollisionEventsReceiverAuthoring : MonoBehaviour, IConvertGameObjectToEntity
 {
     public bool UseCollisionDetails = true;
