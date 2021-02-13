@@ -5,7 +5,7 @@
 /[Ll]ibrary/
 /[Tt]emp/
 /[Oo]bj/
-/[Bb]uild/
+/[Bb]uild_Compressed(LZ4HC)/
 /[Bb]uilds/
 /[Ll]ogs/
 /[Mm]emoryCaptures/
@@ -54,6 +54,7 @@ sysinfo.txt
 # Builds
 *.apk
 *.unitypackage
+release_v2.0_windows64.zip
 
 # Crashlytics generated file
 crashlytics-build.properties
